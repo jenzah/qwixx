@@ -1,4 +1,18 @@
-
+points = {
+        1 : 1,
+        2 : 3,
+        3 : 6,
+        4 : 10,
+        5 : 15,
+        6 : 21,
+        7 : 28,
+        8 : 36,
+        9 : 45,
+        10: 55,
+        11: 66,
+        12: 75
+    }
+ 
 
 # Convert the color as a number
 def indice_couleur(couleur):
@@ -121,8 +135,24 @@ def play(player_name, player_fiche, skip, lock):
 def check_end():
     pass
 
-def decide_winner():
-    pass
+def who_won(fiche_joueurs):
+    """
+    LIST --> INT
+    Retourne l'indice du gagnant
+    """
+    points_joueurs = [0 for i in range(len(fiche_joueurs))]
+
+    for player in range(len(fiche_joueurs)) :
+        # add points for each colour
+        for couleur in range(4) :
+            nombre_x = len(fiche_joueurs[player][couleur])
+            points_joueurs[player] += points[nombre_x]
+            
+        # minus points for skips (penalty)
+        points_joueurs[player] -= (fiche_joueurs[player][-1] * 5)
+    
+    winner_index = points_joueurs.index(max(points_joueurs))
+    return winner_index
     
 
 ## Notes et problèmes ##
