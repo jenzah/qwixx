@@ -130,6 +130,7 @@ def place_x(player_fiche, dice_value) :
 
 def passive_player(player_name, player_fiche) :
     """
+    STR X LIST --> LIST
     demande á joueur passif sur quel ligne il veut cocher
     """
     print(f"{player_name} voulez-vous cocher la somme des dés {dice_value} (o/n/pass) ?")
@@ -189,7 +190,6 @@ def check_end(player_fiche, player_name, couleurs):
 #normally the fiche_joueurs should be in playing order
 def who_won(fiche_joueurs, player_names):
     """
-    LIST
     Compte des points et affiche le gagnant
     """
     print("Le jeu est terminé. \nLes points sont calculés... \n")
