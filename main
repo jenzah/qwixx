@@ -1,3 +1,5 @@
+import random
+
 points = {
         1 : 1,
         2 : 3,
@@ -12,7 +14,35 @@ points = {
         11: 66,
         12: 75
     }
-#b
+
+def lance_de(lock_rouge = False, lock_jaune = False, lock_vert = False, lock_bleu = False):
+    """
+    None v bool -> dict
+    Fonction qui retourne un dictionnaire dont les clés sont les noms des dés et les
+    valeurs sont les valeurs des dés prises au hasard, si un des paramètres
+    optionnels ci-dessus est True, cela renvoie le dictionnaire sans la valeur
+    """
+    des =  {"blanc_1" : random.randint(1,6), "blanc_2" : random.randint(1,6),
+            "rouge" : random.randint(1,6), "jaune" : random.randint(1,6),
+            "vert" : random.randint(1,6), "bleu" : random.randint(1,6)
+            }
+    if lock_rouge == True :
+        del des["rouge"]
+    if lock_jaune == True:
+        del des["jaune"]
+    if lock_vert == True :
+        del des["vert"]
+    if lock_bleu == True :
+        del des["bleu"]
+    return des
+
+def combine_dice():
+    """
+    None -> Int
+    Fonction qui retourne la somme des deux dés blancs
+    """
+    a = lance_de()
+    return a["blanc_1"] + a["blanc_2"]
 
 # Convert the color as a number
 def indice_couleur(couleur):
