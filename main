@@ -1,0 +1,257 @@
+points = {
+        1 : 1,
+        2 : 3,
+        3 : 6,
+        4 : 10,
+        5 : 15,
+        6 : 21,
+        7 : 28,
+        8 : 36,
+        9 : 45,
+        10: 55,
+        11: 66,
+        12: 75
+    }
+ 
+
+# Convert the color as a number
+def indice_couleur(couleur):
+    """
+    Str -> Int 
+    Fonction retournant l'indice de la couleur.
+    """
+
+    if couleur == "rouge":
+        return 0
+    
+    elif couleur == "jaune":
+        return 1
+    
+    elif couleur == "bleu":
+        return 2
+    
+    # Ligne est vert
+    return 3
+
+
+# Check if the number can be cross on a line.
+def verif_num_supp(fiche_player, couleur, n):
+    """
+    List x Int x Int -> Bool
+    Fonction retournant True si la valeur est plus grande que la dernière valeur de la ligne, False sinon. 
+    """
+
+    if fiche_player[couleur] == "":
+        return True
+
+    # Ligne jaune et rouge.
+    if 0 <= couleur <= 1:
+        if decimal_of(fiche_player[couleur][-1]) < n:
+            return True
+        return False
+
+    # Ligne bleue et verte.
+    if decimal_of(fiche_player[couleur][-1]) > n:
+        return True
+    return False
+    
+
+# Cross number on the line
+def ajoute_numero(fiche_player, couleur, n):
+    """
+    List x Int x Int -> None
+    Processus qui permet d'ajouter le numéro coché sur la fiche
+    """
+
+    n_hex = hex(n)
+
+    # Concaténation avec str de la liste
+    fiche_player[couleur] += n_hex[-1]
+
+
+# Check if the line is lock or not (+5 crossed numbers and lock number is crossed)
+def is_lock(fiche_player, couleur):
+    """
+    List, Int -> Bool
+    Fonction retournant True si la ligne comporte 5 cases cochées et le dernier numéro coché.
+    """
+
+    if 0 <= couleur <= 1:
+        if len(fiche_player[couleur]) >= 5 and "C" in fiche_player[couleur]:
+            return True
+
+    if len(fiche_player[couleur]) >= 5 and "2" in fiche_player[couleur]:
+        return True        
+
+
+# Convert hexadecimal number to decimal number
+def decimal_of(x):
+    """
+    Str -> Int 
+    Fonction convertie la valeur hexadécimale en valeur décimal"""
+
+    valeur = "0x" + x
+    return int(valeur, 16)
+
+
+# [A CODER]
+def combine_dice():
+    while True:
+        ask = input("Vous êtes le joueur actif. Quel couleur de dé vous souhaitez combiner:")
+    
+        if ask in liste_couleur:
+            break
+        print("Il n'existe cette couleur de dé. Recommencez.")
+
+    #combine_dice = dice1 + dice2 
+
+    return None
+
+
+def place_x(player_fiche, dice_value) :
+    print("Entrez une couleur de ligne pour cocher le numéro: ")
+    #ajouter des lignes pour afficher les dé actifs
+    ask = input(">")
+
+    if ask.lower() in ["rouge", "r", "vert", "v", "jaune", "j", "bleu", "b"]:
+        couleur = indice_couleur(ask)
+
+        if verif_num_supp(player_fiche, couleur, dice_value):
+            ajoute_numero(player_fiche, couleur, dice_value)
+            return player_fiche
+
+        else:
+            print(f"{dice_value} ne peut pas être coché sur cette ligne. Recommencez.")
+            return place_x(player_fiche, dice_value)
+    else:
+        print("[Commande invalid]")
+        return place_x(player_fiche, dice_value)
+
+
+def passive_player(player_name, player_fiche) :
+    """
+    STR X LIST --> LIST
+    demande á joueur passif sur quel ligne il veut cocher
+    """
+    print(f"{player_name} voulez-vous cocher la somme des dés {dice_value} (o/n/pass) ?")
+    ask = input(">")
+
+    if ask.lower() == "o" or ask == "oui" :
+        player_fiche = place_x(player_fiche, dice_value)
+        return player_fiche
+    
+    else:
+        return player_fiche
+        
+
+def play(player_name, player_fiche, skip, lock):
+    print(f"{player_name} voulez-vous cocher la somme des dés {dice_value} (o/n/pass) ?")
+    ask = input(">")
+
+    if ask.lower() == "o" or ask == "oui" :
+        player_fiche = place_x(player_fiche, dice_value)
+
+    elif ask.lower() == "pass":
+        skip += 1
+    
+    else:
+        print("[Commande invalide]")
+        return act_player(player_name, player_fiche)
+
+    elif ask.lower() == "pass":
+        skip += 1
+
+    if player_name == active_player and not(lock):
+        dice_number = combine_dice()
+        play(player_name, player_fiche, lock = True)
+
+    if skip == 2:
+        player_fiche[-1] += 1
+
+
+# End/Win conditions
+def check_end(player_fiche, player_name, couleurs):
+    #if someone has 4 penalties
+    if player_fiche[-1] == 4 :
+        print(f"{player_name} a 4 pénalité.")
+        return True
+    
+    #if 2 lines are locked == 2 dices are removed
+    # ???? condition depends on how we remove dices...
+    if len(couleurs) == 2:
+        print("Vous avez enlevez le deuxieme dé coloré.")
+        return True
+    
+    return False
+
+
+#calculates points and tells who is the winner
+#if we will be using names, we will need to add the player order (with names) and call on the indice of that one
+#normally the fiche_joueurs should be in playing order
+def who_won(fiche_joueurs, player_names):
+    """
+    Compte des points et affiche le gagnant
+    """
+    print("Le jeu est terminé. \nLes points sont calculés... \n")
+    
+    points_joueurs = [0 for i in range(len(fiche_joueurs))]
+
+    for player in range(len(fiche_joueurs)) :
+        # add points for each colour
+        for couleur in range(4) :
+            nombre_x = len(fiche_joueurs[player][couleur])
+            points_joueurs[player] += points[nombre_x]
+            
+        # minus points for skips (penalty)
+        points_joueurs[player] -= (fiche_joueurs[player][-1] * 5)
+    
+    winner_index = points_joueurs.index(max(points_joueurs))
+    print(f"Vous avez gagné, {player_names[winner_index]} avec {max(points_joueurs)} points.")
+    
+
+## Notes et problèmes ##
+
+# Les éléments primaires sont: la fiche du joueur, les dés (2w, 1r, 1g, 1b, 1y), 
+# Les éléments secondaires sont: les conditions d'arrêt, cocher un case de la fiche, les conditions pour pouvoir cocher une case, sélection de personnage, tour par tour, pénalités, active_player
+
+# fiche_player: liste d'élément, chaque élément correspond à une ligne de la fiche écrit en str, les str sont les numéros cochés enregistrés en base 16. La pénalité (int) est le dernier élément de la liste. 
+
+# condition d'arrêt [PAS CODER]
+# 
+##
+
+
+
+#setup
+dice = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"]
+liste_couleur = ["rouge", "r", "vert", "v", "jaune", "j", "bleu", "b"]
+
+
+def game_no_bot():
+    global active_player, dice_number
+
+    # [Initialisation provisoire]
+    fiche_joueurs = [["", "", "", "", 0] for i in range(len(liste_joueurs))]
+    ordre_joueur = ["moi", "moi2", "moi3", "eris"]
+
+
+    # Start
+    running = True
+    while running:
+        for player_number, active_player in enumerate(ordre_joueur):
+
+            # Set up player_fiche and skip
+            player_fiche = fiche_joueurs[player_number] 
+            skip = 0
+
+            # Trow dice
+            # dice_number = dice_base
+
+            # Select different commands
+            for player in ordre_joueur:
+                play(player, player_fiche, skip, lock = False)
+
+            
+
+
+                
