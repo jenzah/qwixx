@@ -144,26 +144,28 @@ def passive_player(player_name, player_fiche) :
         return player_fiche
         
 
-def play(player_name, player_fiche, skip, lock):
-    print(f"{player_name} voulez-vous cocher la somme des dés {dice_value} (o/n/pass) ?")
+def play(player_name, player_fiche, skip, dice, lock = False) :
+    print(f"{player_name} voulez-vous cocher la somme des dés {dice} (oui/pass) ?")
     ask = input(">")
 
     if ask.lower() == "o" or ask == "oui" :
-        player_fiche = place_x(player_fiche, dice_value)
+        player_fiche = place_x(player_fiche, dice)
 
     elif ask.lower() == "pass":
         skip += 1
     
     else:
         print("[Commande invalide]")
-        return play(player_name, player_fiche)
+        return play(player_name, player_fiche, False, skip)
 
     if player_name == active_player and not(lock):
-        dice_number = combine_dice()
-        play(player_name, player_fiche, lock = True)
+        dice_value = combine_dice()
+        play(player_name, player_fiche, skip, dice_value, lock = True)
 
     if skip == 2:
         player_fiche[-1] += 1
+    
+    return player_fiche
 
 
 # End/Win conditions
