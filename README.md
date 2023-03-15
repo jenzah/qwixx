@@ -19,3 +19,7 @@
 
 - une 'penalty' vaut -5 points et un joueur en a 4
 - points par couleur
+
+- le jeu est terminé quand
+	- 2 dés sont enlevé
+	- quelqu'un a 4 penalty
