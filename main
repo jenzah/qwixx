@@ -12,7 +12,7 @@ points = {
         11: 66,
         12: 75
     }
- 
+#b
 
 # Convert the color as a number
 def indice_couleur(couleur):
