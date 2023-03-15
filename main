@@ -156,10 +156,7 @@ def play(player_name, player_fiche, skip, lock):
     
     else:
         print("[Commande invalide]")
-        return act_player(player_name, player_fiche)
-
-    elif ask.lower() == "pass":
-        skip += 1
+        return play(player_name, player_fiche)
 
     if player_name == active_player and not(lock):
         dice_number = combine_dice()
