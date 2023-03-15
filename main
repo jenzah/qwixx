@@ -1,4 +1,18 @@
-
+points = {
+        1 : 1,
+        2 : 3,
+        3 : 6,
+        4 : 10,
+        5 : 15,
+        6 : 21,
+        7 : 28,
+        8 : 36,
+        9 : 45,
+        10: 55,
+        11: 66,
+        12: 75
+    }
+ 
 
 # Convert the color as a number
 def indice_couleur(couleur):
@@ -94,17 +108,54 @@ def combine_dice():
     return None
 
 
-def play(player_name, player_fiche, skip, lock):
-    ask = input("Entrez une couleur de ligne pour cocher le numéro: ")
+def place_x(player_fiche, dice_value) :
+    print("Entrez une couleur de ligne pour cocher le numéro: ")
+    #ajouter des lignes pour afficher les dé actifs
+    ask = input(">")
 
     if ask.lower() in ["rouge", "r", "vert", "v", "jaune", "j", "bleu", "b"]:
         couleur = indice_couleur(ask)
 
-        if verif_num_supp(player_fiche, couleur, dice_number):
-            ajoute_numero(player_fiche, couleur, dice_number)
+        if verif_num_supp(player_fiche, couleur, dice_value):
+            ajoute_numero(player_fiche, couleur, dice_value)
+            return player_fiche
 
         else:
-            print(f"{dice_number} ne peut pas être coché sur cette ligne. Recommencez.")
+            print(f"{dice_value} ne peut pas être coché sur cette ligne. Recommencez.")
+            return place_x(player_fiche, dice_value)
+    else:
+        print("[Commande invalid]")
+        return place_x(player_fiche, dice_value)
+
+
+def passive_player(player_name, player_fiche) :
+    """
+    demande á joueur passif sur quel ligne il veut cocher
+    """
+    print(f"{player_name} voulez-vous cocher la somme des dés {dice_value} (o/n/pass) ?")
+    ask = input(">")
+
+    if ask.lower() == "o" or ask == "oui" :
+        player_fiche = place_x(player_fiche, dice_value)
+        return player_fiche
+    
+    else:
+        return player_fiche
+        
+
+def play(player_name, player_fiche, skip, lock):
+    print(f"{player_name} voulez-vous cocher la somme des dés {dice_value} (o/n/pass) ?")
+    ask = input(">")
+
+    if ask.lower() == "o" or ask == "oui" :
+        player_fiche = place_x(player_fiche, dice_value)
+
+    elif ask.lower() == "pass":
+        skip += 1
+    
+    else:
+        print("[Commande invalide]")
+        return act_player(player_name, player_fiche)
 
     elif ask.lower() == "pass":
         skip += 1
@@ -118,11 +169,44 @@ def play(player_name, player_fiche, skip, lock):
 
 
 # End/Win conditions
-def check_end():
-    pass
+def check_end(player_fiche, player_name, couleurs):
+    #if someone has 4 penalties
+    if player_fiche[-1] == 4 :
+        print(f"{player_name} a 4 pénalité.")
+        return True
+    
+    #if 2 lines are locked == 2 dices are removed
+    # ???? condition depends on how we remove dices...
+    if len(couleurs) == 2:
+        print("Vous avez enlevez le deuxieme dé coloré.")
+        return True
+    
+    return False
 
-def decide_winner():
-    pass
+
+#calculates points and tells who is the winner
+#if we will be using names, we will need to add the player order (with names) and call on the indice of that one
+#normally the fiche_joueurs should be in playing order
+def who_won(fiche_joueurs, player_names):
+    """
+    LIST
+    Compte des points et affiche le gagnant
+    """
+    print("Le jeu est terminé. \nLes points sont calculés... \n")
+    
+    points_joueurs = [0 for i in range(len(fiche_joueurs))]
+
+    for player in range(len(fiche_joueurs)) :
+        # add points for each colour
+        for couleur in range(4) :
+            nombre_x = len(fiche_joueurs[player][couleur])
+            points_joueurs[player] += points[nombre_x]
+            
+        # minus points for skips (penalty)
+        points_joueurs[player] -= (fiche_joueurs[player][-1] * 5)
+    
+    winner_index = points_joueurs.index(max(points_joueurs))
+    print(f"Vous avez gagné, {player_names[winner_index]} avec {max(points_joueurs)} points.")
     
 
 ## Notes et problèmes ##
