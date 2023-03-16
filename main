@@ -22,13 +22,13 @@ def indice_couleur(couleur):
     Fonction retournant l'indice de la couleur.
     """
 
-    if couleur == "rouge" or couleur == "r" :
+    if couleur.lower() == "rouge" or couleur.lower() == "r" :
         return 0
     
-    elif couleur == "jaune" or couleur == "j":
+    elif couleur.lower() == "jaune" or couleur.lower() == "j":
         return 1
     
-    elif couleur == "bleu" or couleur == "b":
+    elif couleur.lower() == "bleu" or couleur.lower() == "b":
         return 2
     
     # Ligne est vert
@@ -66,29 +66,19 @@ def ajoute_numero(fiche_player: list, couleur, n):
     fiche_player[couleur].append(n)
 
 
-# Check if the line is lock or not (+5 crossed numbers and lock number is crossed)
-def is_lock(fiche_player, couleur):
+# Check if the line is locked or not (+5 crossed numbers and lock number is crossed)
+def is_locked(fiche_player, couleur):
     """
     List, Int -> Bool
     Fonction retournant True si la ligne comporte 5 cases cochées et le dernier numéro coché.
     """
 
     if 0 <= couleur <= 1:
-        if len(fiche_player[couleur]) >= 5 and "C" in fiche_player[couleur]:
+        if len(fiche_player[couleur]) >= 5 and 12 in fiche_player[couleur]:
             return True
 
-    if len(fiche_player[couleur]) >= 5 and "2" in fiche_player[couleur]:
+    if len(fiche_player[couleur]) >= 5 and 2 in fiche_player[couleur]:
         return True        
-
-
-# Convert hexadecimal number to decimal number
-def decimal_of(x):
-    """
-    Str -> Int 
-    Fonction convertie la valeur hexadécimale en valeur décimal"""
-
-    valeur = "0x" + x
-    return int(valeur, 16)
 
 
 # [A CODER]
@@ -126,22 +116,6 @@ def place_x(player_fiche, dice_value) :
         print("[Commande invalide]")
         return place_x(player_fiche, dice_value)
 
-"""
-def passive_player(player_name, player_fiche) :
-    
-    STR X LIST --> LIST
-    demande á joueur passif sur quel ligne il veut cocher
-    
-    print(f"{player_name} voulez-vous cocher la somme des dés {dice_value} (oui/pass) ?")
-    ask = input(">")
-
-    if ask.lower() == "o" or ask == "oui" :
-        player_fiche = place_x(player_fiche, dice_value)
-        return player_fiche
-    
-    else:
-        return player_fiche
-"""     
 
 def play(player_name, player_fiche, dice, skip = 0, lock = False) :
     print(f"{player_name} voulez-vous cocher la somme des dés {dice} (oui/pass) ?")
@@ -150,7 +124,7 @@ def play(player_name, player_fiche, dice, skip = 0, lock = False) :
     if ask.lower() == "o" or ask == "oui" :
         player_fiche = place_x(player_fiche, dice)
 
-    elif ask.lower() == "pass":
+    elif ask.lower() == "pass" or ask.lower() == "p":
         skip += 1
     
     else:
@@ -243,15 +217,15 @@ def game_no_bot():
             # Trow dice
             # dice_value = dice_base
             dice = combine_dice()
-            print(f"le valeur de dé blancs: {dice}")
+            print(f"le valeur de dé blancs: {dice}\n")
 
             # Passive players
             for player_num, player in enumerate(ordre_joueur):
                     if player != active_player :
-                        player_fiche = play(player, fiche_joueurs[player_num], dice)
-                        print(player_fiche)
+                        fiche = play(player, fiche_joueurs[player_num], dice)
+                        print(f"{player} : {fiche}\n")
             player_fiche = play(active_player, player_fiche, dice)
-            print(f"active player : {player_fiche}")
+            print(f"active player : {player_fiche}\n")
             
 
 game_no_bot()
