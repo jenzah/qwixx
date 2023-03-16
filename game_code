@@ -15,6 +15,54 @@ points = {
     }
  
 
+def remove_dice(couleur):
+    if is_locked() :
+        del nom[couleur]
+
+
+def indice_des():
+    """
+    None -> list
+    Fonction qui renvoie une liste contenant les valeurs des dés
+    """
+    indice = [randint(1, len(nom)) for i in range(6)]
+    return indice
+
+
+def combiner_des(lance):
+    """
+    None -> Int
+    Fonction qui renvoie la combinaison de soit, les deux dés blancs, soit un dé de couleur et un dé blanc
+    """
+    somme = 0
+    choix = input("Taper c pour combiner un dé de couleur et un dé blanc et b pour combiner les deux dés blancs : ")
+    if choix == "b" :
+        somme = lance[-2] + lance[-1]
+        return somme
+    if choix == "c" :
+        choix_2 = input("Tapez la couleur du dés que vous voulez parmi {} qui valent"
+                        "respectivement {} : ".format(nom[:-2], lance[:-2]))
+        choix_3 = input("Vous voulez additionner cette couleur avec lequel des dés blancs ? {} qui valent {} : ".format(nom[-2:], lance[-2:]))
+        for i in range(6) :
+            if choix_2 == nom[i] :
+                somme += lance[i]
+                for j in range(6):
+                    if choix_3 == nom[j]:
+                        somme += lance[j]
+        return somme
+
+"""
+def combine_dice():
+    while True:
+        ask = input("Vous êtes le joueur actif. Quel couleur de dé vous souhaitez combiner:")
+    
+        if ask in liste_couleur:
+            break
+        print("Il n'existe cette couleur de dé. Recommencez.")
+
+    #combine_dice = dice1 + dice2
+"""
+
 # Convert the color as a number
 def indice_couleur(couleur):
     """
@@ -78,23 +126,7 @@ def is_locked(fiche_player, couleur):
             return True
 
     if len(fiche_player[couleur]) >= 5 and 2 in fiche_player[couleur]:
-        return True        
-
-
-# [A CODER]
-def combine_dice():
-    """
-    while True:
-        ask = input("Vous êtes le joueur actif. Quel couleur de dé vous souhaitez combiner:")
-    
-        if ask in liste_couleur:
-            break
-        print("Il n'existe cette couleur de dé. Recommencez.")
-
-    #combine_dice = dice1 + dice2 
-    """
-
-    return randint(2, 12)
+        return True
 
 
 def place_x(player_fiche, dice_value) :
@@ -195,7 +227,8 @@ def who_won(fiche_joueurs, player_names):
 
 #setup
 dice = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"]
-liste_couleur = ["rouge", "r", "vert", "v", "jaune", "j", "bleu", "b"]
+nom = ["rouge", "jaune", "bleu", "vert", "blanc_1", "blanc_2"]
+#liste_couleur = ["rouge", "r", "vert", "v", "jaune", "j", "bleu", "b"]
 
 
 def game_no_bot():
@@ -215,6 +248,8 @@ def game_no_bot():
             print(active_player, player_fiche)
 
             # Trow dice
+            lance = indice_des()
+            
             # dice_value = dice_base
             dice = combine_dice()
             print(f"le valeur de dé blancs: {dice}\n")
