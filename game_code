@@ -15,55 +15,60 @@ points = {
     }
  
 
+#if line is locked, deletes the dice colour name
 def remove_dice(couleur):
     if is_locked() :
-        del nom[couleur]
+        del liste_couleur[couleur]
 
 
-def indice_des():
+# renvoie une liste contenant les valeurs des dés
+def dice_values():
     """
     None -> list
     Fonction qui renvoie une liste contenant les valeurs des dés
     """
-    indice = [randint(1, len(nom)) for i in range(6)]
-    return indice
+    valeurs = [randint(1, 6) for i in range(len(liste_couleur))]
+    return valeurs
 
 
-def combiner_des(lance):
+def combine_whites(des_valeurs):
+    """
+    retourne la somme de dés blancs
+    """
+    return des_valeurs[-2] + des_valeurs[-1]
+
+
+def combine_w_colour(des_valeurs):
     """
     None -> Int
     Fonction qui renvoie la combinaison de soit, les deux dés blancs, soit un dé de couleur et un dé blanc
     """
     somme = 0
-    choix = input("Taper c pour combiner un dé de couleur et un dé blanc et b pour combiner les deux dés blancs : ")
-    if choix == "b" :
-        somme = lance[-2] + lance[-1]
-        return somme
-    if choix == "c" :
-        choix_2 = input("Tapez la couleur du dés que vous voulez parmi {} qui valent"
-                        "respectivement {} : ".format(nom[:-2], lance[:-2]))
-        choix_3 = input("Vous voulez additionner cette couleur avec lequel des dés blancs ? {} qui valent {} : ".format(nom[-2:], lance[-2:]))
-        for i in range(6) :
-            if choix_2 == nom[i] :
-                somme += lance[i]
-                for j in range(6):
-                    if choix_3 == nom[j]:
-                        somme += lance[j]
-        return somme
-
-"""
-def combine_dice():
-    while True:
-        ask = input("Vous êtes le joueur actif. Quel couleur de dé vous souhaitez combiner:")
     
-        if ask in liste_couleur:
+    while True :
+        couleur = input("Tapez la couleur de dé que vous voulez parmi {} qui valent"
+                    " respectivement {} : ".format(liste_couleur[:-2], des_valeurs[:-2]))
+        
+        if couleur.lower() in liste_couleur[:-2] :
+            i = liste_couleur.index(couleur)
+            somme += des_valeurs[i]
             break
-        print("Il n'existe cette couleur de dé. Recommencez.")
+        print("[ERREUR] Il n'existe cette couleur de dé. Recommencez.")
+    
+    print(liste_couleur[-2:])
+    while True :
+        blanc = input("Vous voulez additionner cette couleur avec lequel des dés blancs ? {} qui valent {} : ".format(liste_couleur[-2:], des_valeurs[-2:]))
+        
+        if blanc.lower() in liste_couleur[-2:] :
+            i = liste_couleur.index(blanc)
+            somme += des_valeurs[i]
+            break
+        print("[ERREUR] Il n'existe cette couleur de dé. Recommencez.")
+    
+    return somme
 
-    #combine_dice = dice1 + dice2
-"""
 
-# Convert the color as a number
+# Convert the color into a number
 def indice_couleur(couleur):
     """
     Str -> Int 
@@ -129,9 +134,13 @@ def is_locked(fiche_player, couleur):
         return True
 
 
-def place_x(player_fiche, dice_value) :
+def place_x(player_fiche, dice_value, active_colour=0) :
     print("Entrez une couleur de ligne pour cocher le numéro: ")
-    #ajouter des lignes pour afficher les dé actifs
+    if active_colour in liste_couleur :
+        if verif_num_supp(player_fiche, active_colour, dice_value):
+            ajoute_numero(player_fiche, active_colour, dice_value)
+            return player_fiche
+
     ask = input(">")
 
     if ask.lower() in ["rouge", "r", "vert", "v", "jaune", "j", "bleu", "b"]:
@@ -149,26 +158,50 @@ def place_x(player_fiche, dice_value) :
         return place_x(player_fiche, dice_value)
 
 
-def play(player_name, player_fiche, dice, skip = 0, lock = False) :
-    print(f"{player_name} voulez-vous cocher la somme des dés {dice} (oui/pass) ?")
-    ask = input(">")
+def play(player_name, player_fiche, dice, active_colour=0, skip=0, lock=False) :
+    if lock == False :
+        print(f"{player_name} voulez-vous cocher la somme des dés {dice} (oui/pass) ? ")
+        ask = input(">")
 
-    if ask.lower() == "o" or ask == "oui" :
-        player_fiche = place_x(player_fiche, dice)
+        if ask.lower() == "o" or ask.lower() == "oui" :
+            player_fiche = place_x(player_fiche, dice)
 
-    elif ask.lower() == "pass" or ask.lower() == "p":
-        skip += 1
+        elif ask.lower() == "pass" or ask.lower() == "p":
+            skip += 1
     
-    else:
-        print("[Commande invalide]")
-        return play(player_name, player_fiche, dice, skip, False)
+        else:
+            print("[Commande invalide]")
+            return play(player_name, player_fiche, dice, skip, False)
+    
+    # quand lock est True
+    else :
+        player_fiche = place_x(player_fiche, dice, active_colour)
 
     if player_name == active_player and not(lock):
-        dice_value = combine_dice()
-        play(player_name, player_fiche, dice_value, skip, lock = True)
+        #affiche des dés
+        print("Vous êtes le joueur actif. Vous pouvez combiner un dé blanc et un dé coloré. Les dés :")
+        for k in range(len(liste_couleur)) :
+            print(f"{liste_couleur[k]} : {des_valeurs[k]}")
+        
+        c = True
+        while c :
+            combine = input("Voulez-vous combiner des dés (oui/pass) ? ")
+        
+            if combine.lower() == "o" or combine.lower() == "oui" :
+                dice_value = combine_w_colour(des_valeurs)
+                play(player_name, player_fiche, dice_value, skip, lock = True)
+                c = False
+
+            elif combine.lower() == "pass" or combine.lower() == "p":
+                skip += 1
+                c = False
+            
+            else:
+                print("[Commande invalide]")
 
     if skip == 2:
         player_fiche[-1] += 1
+        print(f"Vous avez obtenu un pénalité. \nVous avez {player_fiche[-1]} pénalité.")
     
     return player_fiche
 
@@ -180,9 +213,8 @@ def check_end(player_fiche, player_name, couleurs):
         print(f"{player_name} a 4 pénalité.")
         return True
     
-    #if 2 lines are locked == 2 dices are removed
-    # ???? condition depends on how we remove dices...
-    if len(couleurs) == 2:
+    #if 2 lines are locked <==> 2 dices are removed
+    if len(couleurs) == 4:
         print("Vous avez enlevez le deuxieme dé coloré.")
         return True
     
@@ -227,12 +259,11 @@ def who_won(fiche_joueurs, player_names):
 
 #setup
 dice = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"]
-nom = ["rouge", "jaune", "bleu", "vert", "blanc_1", "blanc_2"]
-#liste_couleur = ["rouge", "r", "vert", "v", "jaune", "j", "bleu", "b"]
+liste_couleur = ["rouge", "jaune", "bleu", "vert", "blanc1", "blanc2"]
 
 
 def game_no_bot():
-    global active_player, dice_value
+    global active_player, des_valeurs
 
     # [Initialisation provisoire]
     fiche_joueurs = [[[], [], [], [], 0] for i in range(4)]
@@ -245,21 +276,27 @@ def game_no_bot():
 
             # Set up player_fiche and skip
             player_fiche = fiche_joueurs[player_number]
-            print(active_player, player_fiche)
 
             # Trow dice
-            lance = indice_des()
+            print(f"[Tour de {active_player}]")
+            input("Tapez ENTER pour lancer le dé : ")
+            des_valeurs = dice_values()
             
-            # dice_value = dice_base
-            dice = combine_dice()
-            print(f"le valeur de dé blancs: {dice}\n")
+            # Affiche des dés
+            print("Les dés :")
+            for k in range(len(liste_couleur)) :
+                print(f"{liste_couleur[k]} : {des_valeurs[k]}")
+        
+            # Somme des blancs
+            blancs = combine_whites(des_valeurs)
+            print(f"\nLa somme de dés blancs: {blancs}\n")
 
             # Passive players
             for player_num, player in enumerate(ordre_joueur):
                     if player != active_player :
-                        fiche = play(player, fiche_joueurs[player_num], dice)
+                        fiche = play(player, fiche_joueurs[player_num], blancs)
                         print(f"{player} : {fiche}\n")
-            player_fiche = play(active_player, player_fiche, dice)
+            player_fiche = play(active_player, player_fiche, blancs)
             print(f"active player : {player_fiche}\n")
             
 
