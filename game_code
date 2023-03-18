@@ -41,7 +41,7 @@ def combine_whites(des_valeurs):
 def combine_w_colour(des_valeurs):
     """
     None -> Int
-    Fonction qui renvoie la combinaison de soit, les deux dés blancs, soit un dé de couleur et un dé blanc
+    Fonction qui renvoie la combinaison d'un dé de couleur et un dé blanc
     """
     somme = 0
     
@@ -251,8 +251,9 @@ def who_won(fiche_joueurs, player_names):
 
 # fiche_player: liste d'élément, chaque élément correspond à une ligne de la fiche écrit en str, les str sont les numéros cochés enregistrés en base 16. La pénalité (int) est le dernier élément de la liste. 
 
-# condition d'arrêt [A COMPLETER]
-# 
+# [A RE-CODER] indice_couleur: will be probably troublesome when removing a dice
+# [A CODER] affichage des fiches
+# [A EDITER] affichage des dés
 ##
 
 
