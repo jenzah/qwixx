@@ -15,6 +15,53 @@ points = {
     }
  
 
+# Get the name of the players
+def get_noms_joueurs():
+    """
+    None -> Str
+    Fonction retournant le nom (str) d'un joueur.
+    """
+
+    joueur_nom = None
+
+    while not joueur_nom:
+        joueur_nom = input(f"Entrez un nom du joueur {i + 1}: ")
+
+        if joueur_nom in LISTE_JOUEUR:
+            print("Ce nom a déjà été pris. Réessayez.")
+            joueur_nom = None
+
+    return joueur_nom
+
+
+# To get the number of player and their names (game of 2 to 4 players)
+def select_player():
+    """
+    None -> List
+    Fonction retournant la liste des joueurs.
+    """
+
+    global LISTE_JOUEUR
+    global i
+
+    LISTE_JOUEUR = []
+
+    while True:
+        number = input("Entrez le nombre de joueur (2 à 5 joueurs): ")
+        if not number.isdigit():
+            print("[ERREUR : Vous devez entrez un nombre]")
+            continue
+
+        number_int = int(float(number))
+        if 2 <= number_int <= 5:
+            break
+
+    for i in range(number_int):
+        LISTE_JOUEUR.append(get_noms_joueurs())
+
+    return LISTE_JOUEUR
+
+
 #if line is locked, deletes the dice colour name
 def remove_dice(couleur):
     if is_locked() :
@@ -41,7 +88,7 @@ def combine_whites(des_valeurs):
 def combine_w_colour(des_valeurs):
     """
     None -> Int
-    Fonction qui renvoie la combinaison d'un dé de couleur et un dé blanc
+    Fonction qui renvoie la combinaison de soit, les deux dés blancs, soit un dé de couleur et un dé blanc
     """
     somme = 0
     
@@ -52,6 +99,7 @@ def combine_w_colour(des_valeurs):
         if couleur.lower() in liste_couleur[:-2] :
             i = liste_couleur.index(couleur)
             somme += des_valeurs[i]
+            active_colour = couleur
             break
         print("[ERREUR] Il n'existe cette couleur de dé. Recommencez.")
     
@@ -65,7 +113,7 @@ def combine_w_colour(des_valeurs):
             break
         print("[ERREUR] Il n'existe cette couleur de dé. Recommencez.")
     
-    return somme
+    return somme, active_colour
 
 
 # Convert the color into a number
@@ -137,6 +185,7 @@ def is_locked(fiche_player, couleur):
 def place_x(player_fiche, dice_value, active_colour=0) :
     print("Entrez une couleur de ligne pour cocher le numéro: ")
     if active_colour in liste_couleur :
+        active_colour = indice_couleur(active_colour)
         if verif_num_supp(player_fiche, active_colour, dice_value):
             ajoute_numero(player_fiche, active_colour, dice_value)
             return player_fiche
@@ -188,8 +237,8 @@ def play(player_name, player_fiche, dice, active_colour=0, skip=0, lock=False) :
             combine = input("Voulez-vous combiner des dés (oui/pass) ? ")
         
             if combine.lower() == "o" or combine.lower() == "oui" :
-                dice_value = combine_w_colour(des_valeurs)
-                play(player_name, player_fiche, dice_value, skip, lock = True)
+                dice_value, active_colour = combine_w_colour(des_valeurs)
+                play(player_name, player_fiche, dice_value, active_colour, skip, lock = True)
                 c = False
 
             elif combine.lower() == "pass" or combine.lower() == "p":
@@ -254,6 +303,7 @@ def who_won(fiche_joueurs, player_names):
 # [A RE-CODER] indice_couleur: will be probably troublesome when removing a dice
 # [A CODER] affichage des fiches
 # [A EDITER] affichage des dés
+# 
 ##
 
 
@@ -268,7 +318,8 @@ def game_no_bot():
 
     # [Initialisation provisoire]
     fiche_joueurs = [[[], [], [], [], 0] for i in range(4)]
-    ordre_joueur = ["moi", "moi2", "moi3", "eris"]
+    
+    ordre_joueur = select_player()
 
     # Start
     running = True
