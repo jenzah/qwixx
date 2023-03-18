@@ -1,4 +1,7 @@
+
+from time import sleep
 from random import randint
+
 points = {
         1 : 1,
         2 : 3,
@@ -15,7 +18,7 @@ points = {
     }
  
 
-# Get the name of the players
+# To get the name of the players
 def get_noms_joueurs():
     """
     None -> Str
@@ -25,7 +28,7 @@ def get_noms_joueurs():
     joueur_nom = None
 
     while not joueur_nom:
-        joueur_nom = input(f"Entrez un nom du joueur {i + 1}: ")
+        joueur_nom = input(f"Entrez le nom du joueur {i + 1}: ")
 
         if joueur_nom in LISTE_JOUEUR:
             print("Ce nom a déjà été pris. Réessayez.")
@@ -33,8 +36,27 @@ def get_noms_joueurs():
 
     return joueur_nom
 
+def check_user_input(input):
+    """
+    Str -> Bool
+    Fonction retournant True si input est un nombre, False sinon.
+    """
 
-# To get the number of player and their names (game of 2 to 4 players)
+    try:
+        # Convert it into integer
+        int(input)
+        return True
+
+    except ValueError:
+        try:
+            # Convert it into float
+            float(input)
+            return True
+
+        except ValueError:
+            return False
+
+# To get the number of player and their names (game of 2 to 5 players)
 def select_player():
     """
     None -> List
@@ -48,8 +70,9 @@ def select_player():
 
     while True:
         number = input("Entrez le nombre de joueur (2 à 5 joueurs): ")
-        if not number.isdigit():
-            print("[ERREUR : Vous devez entrez un nombre]")
+        
+        if not check_user_input(number):
+            print("[ERREUR: Vous devez entrez un nombre]")
             continue
 
         number_int = int(float(number))
@@ -61,75 +84,71 @@ def select_player():
 
     return LISTE_JOUEUR
 
+# The order will be random
+def who_starts():
+    pass
 
-#if line is locked, deletes the dice colour name
+
+# When a line is locked, the dice of color is removed
 def remove_dice(couleur):
-    if is_locked() :
-        del liste_couleur[couleur]
+    liste_couleur[indice_couleur(couleur)] = None
 
 
-# renvoie une liste contenant les valeurs des dés
-def dice_values():
+def get_dice():
     """
     None -> list
     Fonction qui renvoie une liste contenant les valeurs des dés
     """
-    valeurs = [randint(1, 6) for i in range(len(liste_couleur))]
-    return valeurs
+
+    liste_dice = [randint(1, 6) if x is not None else None for x in liste_couleur]
+
+    return liste_dice
 
 
-def combine_whites(des_valeurs):
-    """
-    retourne la somme de dés blancs
-    """
-    return des_valeurs[-2] + des_valeurs[-1]
-
-
-def combine_w_colour(des_valeurs):
-    """
-    None -> Int
-    Fonction qui renvoie la combinaison de soit, les deux dés blancs, soit un dé de couleur et un dé blanc
-    """
-    somme = 0
-    
-    while True :
-        couleur = input("Tapez la couleur de dé que vous voulez parmi {} qui valent"
-                    " respectivement {} : ".format(liste_couleur[:-2], des_valeurs[:-2]))
+# probleme avec remove_dice
+def fusion_dice(liste_dice):
+    # ask dice color
+    while True:
+        print("Entrez la couleur du dé à combiner:", end = " ")
         
-        if couleur.lower() in liste_couleur[:-2] :
-            i = liste_couleur.index(couleur)
-            somme += des_valeurs[i]
-            active_colour = couleur
-            break
-        print("[ERREUR] Il n'existe cette couleur de dé. Recommencez.")
-    
-    print(liste_couleur[-2:])
-    while True :
-        blanc = input("Vous voulez additionner cette couleur avec lequel des dés blancs ? {} qui valent {} : ".format(liste_couleur[-2:], des_valeurs[-2:]))
+        for color, dice_value in zip(liste_couleur[:-2], liste_dice):
+            if color is not None:
+                print(f"{color}({dice_value})", end = " ")
+
+        choix2 = input("\n> ")
         
-        if blanc.lower() in liste_couleur[-2:] :
-            i = liste_couleur.index(blanc)
-            somme += des_valeurs[i]
+        if choix2.lower() in liste_couleur[:-2]:
             break
-        print("[ERREUR] Il n'existe cette couleur de dé. Recommencez.")
-    
-    return somme, active_colour
+        print("[ERREUR : Couleur de dé introuvable]\n")
+
+    # ask white dice to combine with
+    while True:
+        choix3 = input("\nVous voulez combiner cette couleur avec lequel des dés blancs ? {} qui valent {}: \n> ".format(liste_couleur[-2:], liste_dice[-2:]))
+
+        if choix3 in liste_couleur[-2:]:
+            break    
+        print("[ERREUR: Couleur de dé introuvable]")
+
+    # somme = valeur(couleur) + valeur(blanc)
+    somme = liste_dice[liste_couleur.index(choix2)] + liste_dice[liste_couleur.index(choix3)]
+                    
+    return somme
 
 
-# Convert the color into a number
+# Convert the color as a number
 def indice_couleur(couleur):
     """
     Str -> Int 
     Fonction retournant l'indice de la couleur.
     """
 
-    if couleur.lower() == "rouge" or couleur.lower() == "r" :
+    if couleur == "rouge" or couleur == "r":
         return 0
     
-    elif couleur.lower() == "jaune" or couleur.lower() == "j":
+    elif couleur == "jaune" or couleur == "j":
         return 1
     
-    elif couleur.lower() == "bleu" or couleur.lower() == "b":
+    elif couleur == "bleu" or couleur == "b":
         return 2
     
     # Ligne est vert
@@ -137,122 +156,120 @@ def indice_couleur(couleur):
 
 
 # Check if the number can be cross on a line.
-def verif_num_supp(fiche_player, couleur, n):
+def verif_num_supp(player_fiche, couleur, value):
     """
     List x Int x Int -> Bool
     Fonction retournant True si la valeur est plus grande que la dernière valeur de la ligne, False sinon. 
     """
 
-    if fiche_player[couleur] == []:
+    if player_fiche[couleur] == []:
         return True
 
     # Ligne jaune et rouge.
     if 0 <= couleur <= 1:
-        if fiche_player[couleur][-1] < n:
+        if player_fiche[couleur][-1] < value:
             return True
         return False
 
     # Ligne bleue et verte.
-    if fiche_player[couleur][-1] > n:
+    if player_fiche[couleur][-1] > value:
         return True
     return False
     
 
+# Check if the line is lockable (>5 cross)
+def verif_line_lockable(player_fiche, couleur):
+    if len(player_fiche[couleur]) < 5:
+        return False
+    return True
+
+
 # Cross number on the line
-def ajoute_numero(fiche_player: list, couleur, n):
+def ajoute_numero(player_fiche, couleur, value):
     """
     List x Int x Int -> None
     Processus qui permet d'ajouter le numéro coché sur la fiche
     """
-    fiche_player[couleur].append(n)
+
+    player_fiche[couleur].append(value)
 
 
-# Check if the line is locked or not (+5 crossed numbers and lock number is crossed)
-def is_locked(fiche_player, couleur):
+# Check if the line is lock or not (+5 crossed numbers and lock number is crossed)
+def is_locked(player_fiche, couleur):
     """
     List, Int -> Bool
     Fonction retournant True si la ligne comporte 5 cases cochées et le dernier numéro coché.
     """
-
-    if 0 <= couleur <= 1:
-        if len(fiche_player[couleur]) >= 5 and 12 in fiche_player[couleur]:
-            return True
-
-    if len(fiche_player[couleur]) >= 5 and 2 in fiche_player[couleur]:
+    # ligne jaune et rouge
+    if 0 <= couleur <= 1 and 12 in player_fiche[couleur]:
         return True
 
+    # ligne bleue et verte
+    if 2 <= couleur <= 4 and 2 in player_fiche[couleur]:
+        return True        
+    return False
 
-def place_x(player_fiche, dice_value, active_colour=0) :
-    print("Entrez une couleur de ligne pour cocher le numéro: ")
-    if active_colour in liste_couleur :
-        active_colour = indice_couleur(active_colour)
-        if verif_num_supp(player_fiche, active_colour, dice_value):
-            ajoute_numero(player_fiche, active_colour, dice_value)
-            return player_fiche
 
-    ask = input(">")
+def place_x(player_fiche, dice_value) :
+    #ajouter des lignes pour afficher les dé actifs
+    while True:
+        ask_color = input(f"Entrez une couleur de ligne pour cocher le numéro {dice_value}: \n> ")
+        
+        if ask_color.lower() not in liste_couleur:
+            print("[ERREUR: Cette couleur de ligne n'existe pas]\n")
+            continue
 
-    if ask.lower() in ["rouge", "r", "vert", "v", "jaune", "j", "bleu", "b"]:
-        couleur = indice_couleur(ask)
-
-        if verif_num_supp(player_fiche, couleur, dice_value):
-            ajoute_numero(player_fiche, couleur, dice_value)
-            return player_fiche
-
-        else:
+        couleur = indice_couleur(ask_color.lower())
+        
+        if not verif_num_supp(player_fiche, couleur, dice_value):
             print(f"{dice_value} ne peut pas être coché sur cette ligne. Recommencez.")
-            return place_x(player_fiche, dice_value)
+            continue
+
+        ajoute_numero(player_fiche, couleur, dice_value)
+        break
+
+        
+def play(player_name, player_fiche, liste_dice, dice_value, skip = 0, lock = False) :
+    ask = input(f"{player_name} voulez-vous cocher la somme des dés blancs {dice_value} (oui/pass)? \n> ")
+
+    # players turn 
+    if ask.lower() == "oui" or ask.lower() == "o" :
+        place_x(player_fiche, dice_value)
+    
+    elif ask.lower() == "pass" or ask.lower() == "p":
+        print("Vous avez passé votre tour.")
+        skip += 1
+    
     else:
-        print("[Commande invalide]")
-        return place_x(player_fiche, dice_value)
+        print("[ERREUR: Commande invalide]")
+        return play(player_name, player_fiche, liste_dice, dice_value)
 
-
-def play(player_name, player_fiche, dice, active_colour=0, skip=0, lock=False) :
-    if lock == False :
-        print(f"{player_name} voulez-vous cocher la somme des dés {dice} (oui/pass) ? ")
-        ask = input(">")
-
-        if ask.lower() == "o" or ask.lower() == "oui" :
-            player_fiche = place_x(player_fiche, dice)
-
-        elif ask.lower() == "pass" or ask.lower() == "p":
-            skip += 1
-    
-        else:
-            print("[Commande invalide]")
-            return play(player_name, player_fiche, dice, skip, False)
-    
-    # quand lock est True
-    else :
-        player_fiche = place_x(player_fiche, dice, active_colour)
-
+    # active player seconde turn
     if player_name == active_player and not(lock):
-        #affiche des dés
-        print("Vous êtes le joueur actif. Vous pouvez combiner un dé blanc et un dé coloré. Les dés :")
-        for k in range(len(liste_couleur)) :
-            print(f"{liste_couleur[k]} : {des_valeurs[k]}")
-        
-        c = True
-        while c :
-            combine = input("Voulez-vous combiner des dés (oui/pass) ? ")
-        
-            if combine.lower() == "o" or combine.lower() == "oui" :
-                dice_value, active_colour = combine_w_colour(des_valeurs)
-                play(player_name, player_fiche, dice_value, active_colour, skip, lock = True)
-                c = False
+        print("\nVous êtes le joueur actif.")
+        sleep(0.5)
+        print("Vous pouvez combiner un dé blanc avec un dé coloré.")
+        sleep(0.5)
 
-            elif combine.lower() == "pass" or combine.lower() == "p":
-                skip += 1
-                c = False
+        dice_value = fusion_dice(liste_dice)
+
+        while True:
+            ask = input(f"\n{player_name} voulez-vous cocher le numéro {dice_value} (oui/pass)? \n> ")
             
-            else:
-                print("[Commande invalide]")
+            if ask.lower() == "oui" or ask.lower() == "o" :
+                player_fiche = place_x(player_fiche, dice_value)
+                break
+            
+            elif ask.lower() == "pass" or ask.lower() == "p":
+                print("Vous avez passé votre tour.")
+                skip += 1
+                break
+            print("[ERREUR: Commande invalide]")
 
+    # if active player skip twice
     if skip == 2:
         player_fiche[-1] += 1
-        print(f"Vous avez obtenu un pénalité. \nVous avez {player_fiche[-1]} pénalité.")
-    
-    return player_fiche
+        print(f"Vous avez obtenu une pénalité. | Pénalités: {player_fiche[-1]}.")
 
 
 # End/Win conditions
@@ -269,7 +286,6 @@ def check_end(player_fiche, player_name, couleurs):
     
     return False
 
-
 #calculates points and tells who is the winner
 #normally the fiche_joueurs should be in playing order so it matches the names in order
 def who_won(fiche_joueurs, player_names):
@@ -277,6 +293,7 @@ def who_won(fiche_joueurs, player_names):
     Compte des points et affiche le gagnant
     """
     print("Le jeu est terminé. \nLes points sont calculés... \n")
+    sleep(2)
     
     points_joueurs = [0 for i in range(len(fiche_joueurs))]
 
@@ -300,9 +317,7 @@ def who_won(fiche_joueurs, player_names):
 
 # fiche_player: liste d'élément, chaque élément correspond à une ligne de la fiche écrit en str, les str sont les numéros cochés enregistrés en base 16. La pénalité (int) est le dernier élément de la liste. 
 
-# [A RE-CODER] indice_couleur: will be probably troublesome when removing a dice
-# [A CODER] affichage des fiches
-# [A EDITER] affichage des dés
+# condition d'arrêt [PAS CODER]
 # 
 ##
 
@@ -314,42 +329,53 @@ liste_couleur = ["rouge", "jaune", "bleu", "vert", "blanc1", "blanc2"]
 
 
 def game_no_bot():
-    global active_player, des_valeurs
+    global active_player
+
+    print("\n======================")
+    print("     JEU DU QWIXX")
+    print("======================\n")  
+
 
     # [Initialisation provisoire]
-    fiche_joueurs = [[[], [], [], [], 0] for i in range(4)]
-    
-    ordre_joueur = select_player()
+    liste_joueurs = select_player()
+    fiche_joueurs = [[[], [], [], [], 0] for i in range(len(liste_joueurs))]
+    ordre_joueur = liste_joueurs
+
+    sleep(1)
+    print(f"\nVous pouvez commencer! Ordre de lancer: {ordre_joueur} \n")
+    sleep(0.5)
 
     # Start
     running = True
     while running:
-        for player_number, active_player in enumerate(ordre_joueur):
-
-            # Set up player_fiche and skip
-            player_fiche = fiche_joueurs[player_number]
+        for active_player in ordre_joueur:
+            print(f"\n[Tour de lancer: {active_player}]")
 
             # Trow dice
-            print(f"[Tour de {active_player}]")
-            input("Tapez ENTER pour lancer le dé : ")
-            des_valeurs = dice_values()
+            input("Appuyer sur ENTER pour lancer le dé: ")
+            liste_dice = get_dice()
+            white_dice = liste_dice[-2] + liste_dice[-1]
+
+            # Affiche la valeur des dés blancs
+            print(f"\nLes dés blancs: {liste_couleur[-2]}({liste_dice[-2]}) {liste_couleur[-1]}({liste_dice[-1]})")
+
+            sleep(0.5)
+
+            # Affiche la valeur des dés colorés
+            print("Les dés colorés:", end = " ")
+            for index, dice_value in enumerate(liste_dice[:-2]):
+                print(f"{liste_couleur[index]}({dice_value})", end = " ")
             
-            # Affiche des dés
-            print("Les dés :")
-            for k in range(len(liste_couleur)) :
-                print(f"{liste_couleur[k]} : {des_valeurs[k]}")
+            print()
+            sleep(1)
         
-            # Somme des blancs
-            blancs = combine_whites(des_valeurs)
-            print(f"\nLa somme de dés blancs: {blancs}\n")
+            # play
+            for player_number, player in enumerate(ordre_joueur):
+                # Set up player_fiche
+                player_fiche = fiche_joueurs[player_number] 
 
-            # Passive players
-            for player_num, player in enumerate(ordre_joueur):
-                    if player != active_player :
-                        fiche = play(player, fiche_joueurs[player_num], blancs)
-                        print(f"{player} : {fiche}\n")
-            player_fiche = play(active_player, player_fiche, blancs)
-            print(f"active player : {player_fiche}\n")
+                print(f"\n[{player}]")
+                play(player, player_fiche, liste_dice, white_dice)
+
             
-
 game_no_bot()
