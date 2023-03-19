@@ -1,0 +1,44 @@
+
+def is_playable(player_fiche, value):
+    for couleur in liste_couleur[:-2]:
+        if couleur is None:
+            continue
+
+        if not verif_num_supp(player_fiche, indice_couleur(couleur), value):
+            return False
+    return True
+
+def is_locked(couleur):
+    """
+    List, Int -> Bool
+    Fonction retournant True si la ligne colorée est de type None.
+    """
+
+    # ligne jaune et rouge
+    if liste_couleur[couleur] is None:
+        return True
+    return False
+
+def place_x(player_fiche, dice_value) :
+    #ajouter des lignes pour afficher les dé actifs
+    while True:
+        ask_color = input(f"Entrez une couleur de ligne pour cocher le numéro {dice_value}: \n> ")
+
+        if ask_color.lower() not in liste_couleur:
+            print("[ERREUR: Cette couleur de ligne n'existe pas]\n")
+            continue
+
+        couleur = indice_couleur(ask_color.lower())
+        
+        # blocked line
+        if is_locked(couleur):
+            print(f"La ligne {ask_color.lower()} est bloquée, {dice} ne peut pas être coché.")
+            continue
+        
+        # number too small
+        if not verif_num_supp(player_fiche, couleur, dice_value):
+            print(f"{dice_value} ne peut pas être coché sur cette ligne. Recommencez.")
+            continue
+
+        ajoute_numero(player_fiche, couleur, dice_value)
+        break
