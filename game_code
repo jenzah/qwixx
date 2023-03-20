@@ -106,6 +106,15 @@ def get_dices():
 
     return liste_dice
 
+def is_playable(player_fiche, value):
+    for couleur in liste_couleur[:-2]:
+        if couleur is None:
+            continue
+
+        if not verif_num_supp(player_fiche, indice_couleur(couleur), value):
+            return False
+    return True
+    
 
 def combine_whites(liste_dice):
     """
@@ -255,6 +264,11 @@ def place_x(player_fiche, dice_value, skip, active_colour=0) :
 
         if ask_color.lower() not in liste_couleur:
             print("[ERREUR: Cette couleur de ligne n'existe pas or the line was locked.]\n")
+            continue
+            
+        # blocked line
+        if is_locked(couleur):
+            print(f"La ligne {ask_color.lower()} est bloquée, {dice} ne peut pas être coché.")
             continue
 
         couleur = indice_couleur(ask_color.lower())
