@@ -2,6 +2,8 @@
 from time import sleep
 from random import randint
 from sys import exit
+from itertools import product
+
 
 points = {
         1 : 1,
@@ -158,6 +160,32 @@ def fusion_dice(liste_dice):
                     
     return somme, active_colour
 
+def propose_dice(player_fiche, liste_dice):
+    proposition = dict()
+
+    for white, color in product(liste_dice[-2:], liste_dice[:-2]):
+        if color is None:
+            continue
+
+        fusion = white + color
+        line_color = liste_couleur[liste_dice[:-2].index(color)]
+
+        if line_color is None :
+            continue
+
+        if verif_num_supp(player_fiche, indice_couleur(line_color), fusion):
+            if line_color in proposition :
+                proposition[line_color].append(fusion)
+            else:
+                proposition[line_color] = [fusion]
+
+    return proposition
+
+
+def affiche_proposition(proposition) :
+    for color in proposition :
+        print(f"Vous pouvez cocher {proposition[color]} sur la ligne {color}.")
+
 
 def affiche_des(liste_dice) :
     """
@@ -171,9 +199,10 @@ def affiche_des(liste_dice) :
 
     # Affiche la valeur des dés colorés
     print("Les dés colorés:", end = " ")
-    for index, dice_value in enumerate(liste_dice[:-2]):
-        print(f"{liste_couleur[index]}({dice_value})", end = " ")
-            
+    for couleur, dice_value in zip(liste_couleur, liste_dice):
+        if couleur is not None:
+            print(f"{couleur}({dice_value})", end = " ")
+
 
 # Convert the color as a number
 def indice_couleur(couleur):
@@ -255,7 +284,9 @@ def place_x(player_fiche, dice_value, skip, active_colour=0) :
         # dans le cas le joueur actif a choisi á combiner
         if active_colour in liste_couleur :
             ask_color = active_colour
+      
         else :
+            #decide_color, propose_dice()
             ask_color = input(f"Entrez une couleur de ligne pour cocher le numéro {dice_value}: \n> ")
         
         if ask_color.lower() in ["p", "pass"] :
@@ -264,11 +295,6 @@ def place_x(player_fiche, dice_value, skip, active_colour=0) :
 
         if ask_color.lower() not in liste_couleur:
             print("[ERREUR: Cette couleur de ligne n'existe pas or the line was locked.]\n")
-            continue
-            
-        # blocked line
-        if is_locked(couleur):
-            print(f"La ligne {ask_color.lower()} est bloquée, {dice} ne peut pas être coché.")
             continue
 
         couleur = indice_couleur(ask_color.lower())
@@ -290,7 +316,7 @@ def place_x(player_fiche, dice_value, skip, active_colour=0) :
             if locked :
                 ajoute_numero(player_fiche, couleur, dice_value)
                 print(f"You succesfully locked the {dice_value[couleur]} line.")
-                remove_dice(couleur)
+
             else:
                 print(f"{dice_value} ne peut pas être coché sur cette ligne. \nVous avez perdu votre chance de cocher.")
                 skip += 1
@@ -301,26 +327,42 @@ def place_x(player_fiche, dice_value, skip, active_colour=0) :
         
         break
 
+def propose_whites(player_fiche, whites) :
+    """
+    LIST X INT --> INT
+    """
+    lines = []
+    for line_color in liste_couleur :
+        if line_color is None :
+            continue
+        if verif_num_supp(player_fiche, indice_couleur(line_color), whites) :
+            lines.append(line_color)
+
+    return lines
+
 
 def play(player_name, player_fiche, liste_dice, dice_value, active_colour=0, skip=0, lock=False) :
+
     # ask all players to place X with whites
-    if lock == False :
-        ask = input(f"{player_name} voulez-vous cocher la somme des dés blancs {dice_value} (oui/pass)? \n> ")
-
-        if ask.lower() == "oui" or ask.lower() == "o" :
-            skip = place_x(player_fiche, dice_value, skip)
+    prop_whites = propose_whites(player_fiche, dice_value)
+    if len(prop_whites) == 0:
+        skip += 1
+    else:
+        for color in prop_whites:
+            print(f"Vous pouvez cocher la somme des dés blancs dans la ligne {color}")
     
-        elif ask.lower() == "pass" or ask.lower() == "p":
-            print("Vous avez décidé de ne pas placer de croix.")
-            skip += 1
-    
-        else:
-            print("[ERREUR: Commande invalide]")
-            return play(player_name, player_fiche, liste_dice, dice_value)
+        ask = input(f"{player_name} voulez-vous cocher {dice_value} dans quelle ligne? \n> ")
 
-    # quand lock est True
-    else :
-        skip = place_x(player_fiche, dice_value, skip, active_colour)
+    if ask.lower() in liste_couleur:
+        skip = place_x(player_fiche, dice_value, ask.lower(), skip)
+
+    elif ask.lower() == "pass" or ask.lower() == "p":
+        print("Vous avez décidé de ne pas placer de croix.")
+        skip += 1
+
+    else:
+        print("[ERREUR: Commande invalide]")
+        return play(player_name, player_fiche, liste_dice, dice_value)
 
     # active player second turn
     if player_name == active_player and not(lock):
@@ -330,13 +372,15 @@ def play(player_name, player_fiche, liste_dice, dice_value, active_colour=0, ski
         sleep(0.5)
 
         while True:
-            affiche_des(liste_dice)
+            prop_color = propose_dice(player_fiche, liste_dice)
+            affiche_proposition(prop_color)
             print()
             combine = input(f"\n{player_name} voulez-vous combiner les dés (oui/pass)? \n> ")
             
             if combine.lower() == "oui" or combine.lower() == "o" :
-                dice_value, active_colour = fusion_dice(liste_dice)
-                play(player_name, player_fiche, liste_dice, dice_value, active_colour, skip, lock = True)
+                # ask line and ask the combo
+                line = input("")
+                skip = place_x(player_fiche, dice_value, skip, active_colour)
                 break
             
             elif combine.lower() == "pass" or combine.lower() == "p":
@@ -433,9 +477,9 @@ def game_no_bot():
     sleep(0.5)
 
     # Start
+    ask = input("mode dev (o/n)? ")
     running = True
     while running:
-        ask = input("mode dev (o/n)? ")
         for active_player in ordre_joueur:
             print(f"\n[Tour de lancer: {active_player}]")
 
@@ -457,18 +501,21 @@ def game_no_bot():
 
             # Passive players
             for player_num, player in enumerate(ordre_joueur):
-                    if player != active_player :
-                        print(f"{player} : {fiche}\n") # until we have a proper affichage
-                        fiche = play(player, fiche_joueurs[player_num], white_dices)
-                        print(f"{player} : {fiche}\n") # until we have a proper affichage
-            
-            player_fiche = play(active_player, player_fiche, white_dices)
-            print(f"active player : {player_fiche}\n")
+                #set up
+                player_fiche = fiche_joueurs[player_num] 
+
+                if player != active_player :
+                    print(f"{player} : {fiche}\n") # until we have a proper affichage
+                    play(player, player_fiche,liste_dice,  white_dices)
+                
+                else:
+                    print(f"active player : {player_fiche}\n")
+                    play(active_player, player_fiche, liste_dice, white_dices)
             
             
             ##### Jen's end
             # if line was locked, remove dice
-            if is_locked() :
+            if is_locked():
                 remove_dice()
             # check end conditions
             end = check_end(player_fiche, player, liste_couleur)
