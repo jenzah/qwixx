@@ -377,5 +377,13 @@ def game_no_bot():
                 print(f"\n[{player}]")
                 play(player, player_fiche, liste_dice, white_dice)
 
-            
+
+        # Check end conditions
+        for fiche, nom in zip(fiche_joueurs, ordre_joueur):
+            if check_end(fiche, nom):
+                running = False
+    
+    # Calcul et affiche le vainqueur 
+    who_won(fiche_joueurs, ordre_joueur)  
+
 game_no_bot()
