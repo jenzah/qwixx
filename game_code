@@ -450,7 +450,9 @@ def game_no_bot():
             
             player_fiche = play(active_player, player_fiche, white_dices)
             print(f"active player : {player_fiche}\n")
-
+            
+            
+            ##### Jen's end
             # if line was locked, remove dice
             if is_locked() :
                 remove_dice()
@@ -460,7 +462,16 @@ def game_no_bot():
             # print who won and exit
             if end :
                 who_won(fiche_joueurs, liste_joueurs)
+            
+            
+            #### Roland's end
+            # Check end conditions
+            for fiche, nom in zip(fiche_joueurs, ordre_joueur):
+                if check_end(fiche, nom):
+                    running = False
 
+            # Calcul et affiche le vainqueur 
+            who_won(fiche_joueurs, ordre_joueur)  
 
                 
 
