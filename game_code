@@ -92,17 +92,22 @@ def add_player():
 
 
 # active player plays at the end
-def who_starts(liste_joueur, active_player):
+def playing_order(liste_joueurs, fiche_joueurs, active_player):
     """
-    LIST x STR --> LIST
+    List x Str --> List
     renvoie la liste des joueurs où le joueur actif joue après les joueurs passifs
     """
-    ordre = liste_joueur.copy()
+    joueurs = liste_joueurs.copy()
+    fiches = fiche_joueurs.copy()
+    active_ind = liste_joueurs.index(active_player)
     
-    ordre.remove(active_player)
-    ordre.append(active_player)
+    joueurs.remove(active_player)
+    active_fiche = fiches.pop(active_ind)
 
-    return ordre
+    joueurs.append(active_player)
+    fiches.append(active_fiche)
+
+    return joueurs, fiches
 
 
 # Convert the colour into an index number
@@ -614,7 +619,7 @@ def game_no_bot():
             white_dice = combine_whites(liste_dice)
 
             # ordre_joueur
-            ordre_joueur = who_starts(liste_joueurs, active_player)
+            ordre_joueur, ordre_fiche = playing_order(liste_joueurs, fiche_joueurs, active_player)
             sleep(1)
 
             # Play
@@ -622,7 +627,7 @@ def game_no_bot():
                 print(f"\n[{player_name}]")
 
                 #set up player_fiche
-                player_fiche = fiche_joueurs[player_num]
+                player_fiche = ordre_fiche[player_num]
                 
                 # until we have a proper affichage
                 print(f"{player_name} : {player_fiche}")
