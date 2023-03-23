@@ -588,8 +588,8 @@ def game_no_bot():
 
 
     # [Initialisation provisoire]
-    liste_joueurs =  ["Jem", "Kev"]  # add_player()
-    fiche_joueurs = [[[2, 3, 4, 6, 7], [], [12, 10, 7, 6, 4], [], 0] for i in range(len(liste_joueurs))]
+    liste_joueurs = add_player()
+    fiche_joueurs = [[[], [], [], [], 0] for i in range(len(liste_joueurs))]
 
     sleep(1)
     print(f"\nVous pouvez commencer! Ordre de lancer: {liste_joueurs} \n")
