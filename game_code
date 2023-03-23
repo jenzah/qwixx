@@ -432,7 +432,7 @@ def play_white(player_fiche, white_dice, skip=0):
     # si le joueur ne peut pas jouer, on quitte la fonction
     if len(prop_whites) == 1:
         print(f"Vous ne pouvez pas crocher {white_dice} dans aucune des lignes.")
-        skip = 1
+        skip += 1
         return skip
 
     affiche_proposition(prop_whites)
@@ -446,7 +446,7 @@ def play_white(player_fiche, white_dice, skip=0):
         
         elif place_white.lower() in ["pass", "p"]:
             print("Vous avez décidé de ne pas crocher de numéros.")
-            skip = 1
+            skip += 1
             break
         print("[ERREUR: Commande invalide]")
 
@@ -630,7 +630,7 @@ def game_no_bot():
                 print(f"{player_name} : {player_fiche}\n")
 
                 if player_name == active_player:
-                    nb_skip += play_colour(player_fiche, liste_dice, nb_skip)
+                    nb_skip += play_colour(player_fiche, liste_dice)
                     # check penalties
                     count_skip(player_fiche, nb_skip)
                     print(f"{player_name} : {player_fiche}\n")
