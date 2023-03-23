@@ -158,7 +158,7 @@ def add_to_dict(line_colour, combo):
     LIST x INT --> NONE
     ajoute la somme d'un dé blanc et un dé coloré dans le dict global proposition
     """
-    if line_colour in proposition :
+    if line_colour in proposition and combo not in proposition[line_colour]:
         proposition[line_colour].append(combo)
 
     else:
@@ -211,7 +211,7 @@ def propose_white(player_fiche, white_dices) :
         if white_dices in [12, 2]:
             line = add_special(player_fiche, line_colour, white_dices)
             if line is not None :
-                lines.append(add_special(player_fiche, line_colour, white_dices))
+                lines.append(line)
 
         # if it's any number [3, 4, 5, 6, 7, 8, 9, 10, 11]
         elif is_playable(player_fiche, indice_couleur(line_colour), white_dices):
