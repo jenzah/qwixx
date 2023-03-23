@@ -6,6 +6,7 @@ from itertools import product
 
 
 points = {
+        0 : 0,
         1 : 1,
         2 : 3,
         3 : 6,
@@ -96,14 +97,26 @@ def who_starts(liste_joueur, active_player):
 
     return ordre
 
+# Convert the color as a number
+def indice_couleur(couleur):
+    """
+    Str -> Int 
+    Fonction retournant l'indice de la couleur.
+    """
 
-# When a line is locked, the dice of color is removed
-def remove_dice(couleur_ind):
-    if liste_couleur[couleur_ind] is not None:
-        print(f"Le dé {liste_couleur[couleur_ind]} est retiré du jeu.")
-        liste_couleur[couleur_ind] = None
+    if couleur == "rouge":
+        return 0
+    
+    elif couleur == "jaune":
+        return 1
+    
+    elif couleur == "bleu":
+        return 2
+    
+    # Ligne est vert
+    return 3
 
-
+# get a list of 6 dices
 def get_dices():
     """
     None -> list
@@ -113,29 +126,21 @@ def get_dices():
 
     return liste_dice
 
+# When a line is locked, the dice of color is removed
+def remove_dice(couleur_ind):
+    if liste_couleur[couleur_ind] is not None:
+        print(f"Le dé {liste_couleur[couleur_ind]} est retiré du jeu.")
+        liste_couleur[couleur_ind] = None
 
-def is_playable(player_fiche, value):
-    """
-    LIST X INT
-    retourne vrai si la valeur peut etre cocher sur n'importe quelle ligne faux sinon
-    """
-    for couleur in liste_couleur[:-2]:
-        if couleur is None:
-            continue
 
-        if not verif_num_supp(player_fiche, indice_couleur(couleur), value):
-            return False
-    return True
-    
-
+# sum of white dices
 def combine_whites(liste_dice):
     """
     retourne la somme de dés blancs
     """
     return liste_dice[-2] + liste_dice[-1]
 
-
-# probleme avec remove_dice --> probably completely useless already
+# fusion a white dice and a colored dice
 def fusion_dice(liste_dice):
     # ask dice color
     while True:
@@ -170,6 +175,8 @@ def fusion_dice(liste_dice):
                     
     return somme, active_colour
 
+
+# add the number [2 12] if it's playable
 def add_special(player_fiche, line_couleur, dice_value, type=list):
     if verif_premier(player_fiche, indice_couleur(line_couleur), dice_value):
         if type is list:    
@@ -207,7 +214,7 @@ def propose_whites(player_fiche, white_dices) :
             lines.append(add_special(player_fiche, line_color, white_dices))
 
         # if it's any number [3, 4, 5, 6, 7, 8, 9, 10, 11]
-        elif verif_num_supp(player_fiche, indice_couleur(line_color), white_dices):
+        elif is_playable(player_fiche, indice_couleur(line_color), white_dices):
             lines.append(line_color)
     lines.append(white_dices)
 
@@ -239,7 +246,7 @@ def propose_dice(player_fiche, liste_dice):
             add_special(player_fiche, line_color, fusion, type=dict)
 
         # else it's any number [3, 4, 5, 6, 7, 8, 9, 10, 11]
-        elif verif_num_supp(player_fiche, indice_couleur(line_color), fusion):
+        elif is_playable(player_fiche, indice_couleur(line_color), fusion):
             if line_color in proposition :
                 proposition[line_color].append(fusion)
 
@@ -251,7 +258,7 @@ def propose_dice(player_fiche, liste_dice):
 
     return proposition
 
-
+# print dices
 def affiche_proposition(proposition) :
     """
     LIST / DICT --> NONE
@@ -263,7 +270,6 @@ def affiche_proposition(proposition) :
 
     for color in proposition :
         print(f"Vous pouvez cocher {proposition[color]} dans la ligne {color}.")
-
 
 def affiche_des(liste_dice) :
     """
@@ -283,28 +289,8 @@ def affiche_des(liste_dice) :
     print()
 
 
-# Convert the color as a number
-def indice_couleur(couleur):
-    """
-    Str -> Int 
-    Fonction retournant l'indice de la couleur.
-    """
-
-    if couleur == "rouge":
-        return 0
-    
-    elif couleur == "jaune":
-        return 1
-    
-    elif couleur == "bleu":
-        return 2
-    
-    # Ligne est vert
-    return 3
-
-
 # Check if the number can be cross on a line.
-def verif_num_supp(player_fiche, couleur_ind, value):
+def is_playable(player_fiche, couleur_ind, value):
     """
     List x Int x Int -> Bool
     Fonction retournant True si la valeur est plus grande que la dernière valeur de la ligne, False sinon. 
@@ -323,21 +309,20 @@ def verif_num_supp(player_fiche, couleur_ind, value):
         return True
     return False
     
-
-# Check if the line is lockable (>5 cross)
+# Check if the line is playable for [2, 12]
 def verif_premier(player_fiche, couleur_ind, dice_value):
     """
     si le joueur veut crocher le dernier numéro d'un ligne
     retourne vrai si c'est possible, faux sinon
     """
-    if dice_value == 2 and 0 <= couleur_ind <= 1 and verif_num_supp(player_fiche, couleur_ind, dice_value):
+    if dice_value == 2 and 0 <= couleur_ind <= 1 and is_playable(player_fiche, couleur_ind, dice_value):
         return True
     
-    if dice_value == 12 and 2 <= couleur_ind <= 3 and verif_num_supp(player_fiche, couleur_ind, dice_value):
+    if dice_value == 12 and 2 <= couleur_ind <= 3 and is_playable(player_fiche, couleur_ind, dice_value):
         return True
     return False
 
-
+# Check if the line is lockable (>5 cross)
 def verif_dernier(player_fiche, couleur_ind, dice_value) :
     if dice_value == 12 and 0 <= couleur_ind <= 1 and len(player_fiche[couleur_ind]) >= 5:
         return True
@@ -347,7 +332,6 @@ def verif_dernier(player_fiche, couleur_ind, dice_value) :
     return False
 
 
-
 # Cross number on the line
 def ajoute_numero(player_fiche, couleur_ind, value):
     """
@@ -355,7 +339,6 @@ def ajoute_numero(player_fiche, couleur_ind, value):
     Processus qui permet d'ajouter le numéro coché sur la fiche
     """
     player_fiche[couleur_ind].append(value)
-
 
 # Check if the line is locked or not (+5 crossed numbers and lock number is crossed)
 def is_locked(player_fiche, colour_ind):
@@ -372,7 +355,6 @@ def is_locked(player_fiche, colour_ind):
         return True        
     return False
 
-
 # if line has the locking number in it, it removes the dice
 def lock_line(fiche_joueurs) :
     for fiche in fiche_joueurs :
@@ -380,8 +362,10 @@ def lock_line(fiche_joueurs) :
             if is_locked(fiche, colour_ind):
                 remove_dice(colour_ind)
 
+
+### play systems
 # pour crocher la somme des dés blancs
-def place_x(player_fiche, propositions, skip, dice_value = None, active = False) :
+def place_x(player_fiche, propositions, dice_value = None, skip=0, active = False) :
     while True:
         # Pour tous les joueurs
         if not active:
@@ -431,7 +415,6 @@ def place_x(player_fiche, propositions, skip, dice_value = None, active = False)
 
     return skip
 
-
 def play_white(player_fiche, white_dice, skip=0) :
     # ask all players to place X with whites
     prop_whites = propose_whites(player_fiche, white_dice)
@@ -447,7 +430,7 @@ def play_white(player_fiche, white_dice, skip=0) :
         ask = input(f"Voulez-vous cocher {white_dice} dans une ligne (oui/pass) ? ")
 
         if ask.lower() == "oui" or ask.lower() == "o":
-            skip += place_x(player_fiche, prop_whites, skip, white_dice) 
+            skip += place_x(player_fiche, prop_whites, white_dice) 
             break
         
         elif ask.lower() == "pass" or ask.lower() == "p":
@@ -457,14 +440,6 @@ def play_white(player_fiche, white_dice, skip=0) :
         print("[ERREUR: Commande invalide]")
 
     return skip
-
-
-def count_skip(player_fiche, skip):
-    # if active player skip twice
-    if skip == 2:
-        player_fiche[-1] += 1
-        print(f"Vous avez passé votre 2 fois votre tour, vous obtenez une pénalité. | Pénalités: {player_fiche[-1]}.")
-
 
 def play_color(player_fiche, liste_dice, skip=0):
     # active player second turn
@@ -486,7 +461,7 @@ def play_color(player_fiche, liste_dice, skip=0):
         ask = input(f"\nVoulez-vous crocher une proposition dans une ligne (oui/pass) ? ")
 
         if ask.lower() == "oui" or ask.lower() == "o":
-            skip = place_x(player_fiche, prop_color, skip, active = True)
+            skip = place_x(player_fiche, prop_color, active = True)
             break
 
         elif ask.lower() == "pass" or ask.lower() == "p":
@@ -496,12 +471,20 @@ def play_color(player_fiche, liste_dice, skip=0):
         print("[ERREUR: Commande invalide]")
 
     return skip    
+###
+
+
+def count_skip(player_fiche, skip):
+    # if active player skip twice
+    if skip == 2:
+        player_fiche[-1] += 1
+        print(f"Vous avez passé votre 2 fois votre tour, vous obtenez une pénalité. | Pénalités: {player_fiche[-1]}.")
 
 
 # End/Win conditions
 def check_end(fiche, nom):
     #if someone has 4 penalties
-    if fiche[-1] == 4 :
+    if fiche[-1] == 2 :
         print(f"{nom} a 4 pénalité.")
         return True
     
@@ -522,7 +505,7 @@ def who_won(fiche_joueurs, noms):
     print("Le jeu est terminé. \nLes points sont calculés... \n")
     sleep(2)
     
-    points_joueurs = [0 for i in range(len(fiche_joueurs))]
+    points_joueurs = [0 for i in fiche_joueurs]
 
     for player in range(len(fiche_joueurs)) :
         # add points for each colour
@@ -547,8 +530,8 @@ def who_won(fiche_joueurs, noms):
 
 # fiche_player: liste d'élément, chaque élément correspond à une ligne de la fiche écrit en str, les str sont les numéros cochés enregistrés en base 16. La pénalité (int) est le dernier élément de la liste. 
 
-# condition d'arrêt [A TESTER ET DEBUGGER]
-# problème skip lorsque le joueur actif croche dé blanc mais pas dé couleur il recoit une pénalité [A COMPLETER]
+# condition d'arrêt [PAS CODER]
+# 
 # #
 
 def mode_dev():
@@ -570,7 +553,7 @@ def game_no_bot():
 
     # [Initialisation provisoire]
     liste_joueurs = select_player()
-    fiche_joueurs = [[[2, 3, 4, 6, 7], [], [12, 10, 7, 6, 4], [], 0] for i in range(len(liste_joueurs))]
+    fiche_joueurs = [[[], [], [], [], 0] for i in range(len(liste_joueurs))]
 
     sleep(1)
     print(f"\nVous pouvez commencer! Ordre de lancer: {liste_joueurs} \n")
