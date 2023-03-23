@@ -547,7 +547,7 @@ def who_won(fiche_joueurs, noms):
 
 # fiche_player: liste d'élément, chaque élément correspond à une ligne de la fiche écrit en str, les str sont les numéros cochés enregistrés en base 16. La pénalité (int) est le dernier élément de la liste. 
 
-# condition d'arrêt [PAS CODER]
+# condition d'arrêt [A TESTER ET DEBUGGER]
 # problème skip lorsque le joueur actif croche dé blanc mais pas dé couleur il recoit une pénalité [A COMPLETER]
 # #
 
