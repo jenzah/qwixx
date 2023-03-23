@@ -352,7 +352,7 @@ def is_prelocked(player_fiche, colour_ind):
 
 
 # pour crocher la somme des dés blancs
-def place_x(player_fiche, propositions, skip, dice_value = None, combo_round = False) :
+def place_x(player_fiche, propositions, skip = 0, dice_value = None, combo_round = False) :
     """
     List x List/Dict x Int (x Bool) --> Int
     demande au joueour de crocher un numéro, et le croche
@@ -441,7 +441,7 @@ def play_white(player_fiche, white_dice, skip=0):
         place_white = input(f"Voulez-vous crocher {white_dice} dans une ligne (oui/pass) ? ")
 
         if place_white.lower() in ["oui", "o"]:
-            skip = place_x(player_fiche, prop_whites, skip) 
+            skip += place_x(player_fiche, prop_whites) 
             break
         
         elif place_white.lower() in ["pass", "p"]:
@@ -453,7 +453,7 @@ def play_white(player_fiche, white_dice, skip=0):
     return skip
 
 
-def play_colour(player_fiche, liste_dice, skip):
+def play_colour(player_fiche, liste_dice, skip=0):
     # active player second turn
     print("\nVous êtes le joueur actif.")
     sleep(0.5)
@@ -474,7 +474,7 @@ def play_colour(player_fiche, liste_dice, skip):
         place_combo = input(f"\nVoulez-vous crocher une proposition dans une ligne (oui/pass) ? ")
 
         if place_combo.lower() in ["oui", "o"]:
-            skip = place_x(player_fiche, prop_colour, skip, combo_round = True)
+            skip = place_x(player_fiche, prop_colour, combo_round = True)
             break
 
         elif place_combo.lower() in ["pass", "p"]:
@@ -630,7 +630,7 @@ def game_no_bot():
                 print(f"{player_name} : {player_fiche}\n")
 
                 if player_name == active_player:
-                    nb_skip = play_colour(player_fiche, liste_dice, nb_skip)
+                    nb_skip += play_colour(player_fiche, liste_dice, nb_skip)
                     # check penalties
                     count_skip(player_fiche, nb_skip)
                     print(f"{player_name} : {player_fiche}\n")
