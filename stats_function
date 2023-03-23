@@ -1,0 +1,64 @@
+#Statistiques
+
+#who_won
+
+input = int(input("Veuiilez entrer le nombre de parties que vous voulez effectuer : "))
+tracing_win = {"IA_1" : 35, "IA_2" : 70}
+
+def player_won_percent(tracing_win) :
+    """
+    :param tracing_win: dict
+    :return: dict
+    Fonction qui retourne le pourcentage de victoires de chaque joueurs
+    """
+    for k in tracing_win :
+        tracing_win[k] = tracing_win[k] * input / 100
+    return tracing_win
+
+tracing_line_lock = {"rouge" : 29, "bleu" : 28, "jaune" : 40, "vert" : 56}
+
+def most_line_lock(tracing_line_lock):
+    """
+    :param tracing_line_lock: dict
+    :return: int
+    Fonction qui retourne la ligne qui a le plus été verrouillé
+    """
+    L = []
+    for value in tracing_line_lock.values() :
+        L.append(value)
+    maximum = L[0]
+    for i in L[1:]:
+        maximum = max(maximum, i)
+    for k in tracing_line_lock :
+        if tracing_line_lock[k] == maximum :
+            return k
+
+penalite = 3
+ligne_verrouille = 6
+
+def most_cause_final(penalite, ligne_verrouille) :
+    """
+    :param penalite: int
+    :param ligne_verrouille: int
+    :return: str
+    Fonction qui retourne quelle est la cause de fin de jeu la plus probable
+    """
+    if max(penalite, ligne_verrouille) == ligne_verrouille :
+        return "La fin la plus probable est dû aux verrouillage de ligne : {}".format(ligne_verrouille * input / 100)
+    return "La fin la plus probable est dû aux pénalités : {}".format(penalite * input / 100)
+
+liste_nb_tours = [25,35,67,89]
+
+def average_round(liste_nb_tours):
+    """
+    :param liste_nb_tours: list
+    :return: float
+    Fonction qui retourne le nombre de tours moyen
+    """
+    a = 0
+    for i in liste_nb_tours :
+        a += i
+    a = a / input
+    return a
+
+print(average_round(liste_nb_tours))
