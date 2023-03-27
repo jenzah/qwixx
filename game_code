@@ -160,19 +160,20 @@ def affiche_des(liste_dice) :
 
 def add_to_dict(line_colour, combo):
     """
-    LIST x INT --> NONE
+    List x Int --> None
     ajoute la somme d'un dé blanc et un dé coloré dans le dict global proposition
     """
     if line_colour in proposition and combo not in proposition[line_colour]:
         proposition[line_colour].append(combo)
 
     else:
-        proposition[line_colour] = [combo]
+        if line_colour is not None :
+            proposition[line_colour] = [combo]
 
 
 def combine_whites(liste_dice):
     """
-    LIST --> INT
+    List --> INt
     retourne la somme de dés blancs
     """
     return liste_dice[-2] + liste_dice[-1]
@@ -181,7 +182,7 @@ def combine_whites(liste_dice):
 # adds 2 or 12 to the list of propositions if they can be added
 def add_special(player_fiche, line_colour, dice_value, type=list):
     """
-    LIST x STR x INT (x TYPE) --> STR / NONE
+    List x Str x Int (x Type) --> Str / None
     retourne le couleur de la ligne (ou ajoute des valeurs dans le dictionnaire global proposition)
     avec des possibles placements quand la somme de dés est 2 ou 12
     """
@@ -645,9 +646,7 @@ def game_no_bot():
             
             # check end conditions
             if check_end(player_fiche) :
-                print(f"check end : {check_end(player_fiche)}")
                 running = False
-                print(f"running : {running}")
                 break
 
     # Calcul et affiche le vainqueur 
