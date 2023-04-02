@@ -3,7 +3,7 @@ from time import sleep
 from random import randint
 from sys import exit
 from itertools import product
-
+from colorama import Fore, Style
 
 points = {
     0 : 0,
@@ -357,7 +357,7 @@ def is_prelocked(player_fiche, colour_ind):
     return False
 
 
-# pour crocher la somme des dés blancs
+## pour crocher la somme des dés blancs
 def place_x(player_fiche, propositions, skip = 0, dice_value = None, combo_round = False) :
     """
     List x List/Dict x Int (x Bool) --> Int
@@ -458,8 +458,12 @@ def play_white(player_fiche, white_dice, skip=0):
 
     return skip
 
-
 def play_colour(player_fiche, liste_dice, skip=0):
+    """
+    List x List x Int -> Int
+    Fonction qui permet le jeu et qui renvoie le nombre de skip.
+    """
+
     # active player second turn
     print("\nVous êtes le joueur actif.")
     sleep(0.5)
@@ -490,9 +494,14 @@ def play_colour(player_fiche, liste_dice, skip=0):
         print("[ERREUR: Commande invalide]")
 
     return skip    
-
+##
 
 def count_skip(player_fiche, skip):
+    """
+    List x Int -> None
+    Procédure qui compte le nombre de skip du joueur actif.
+    """
+
     # if active player skip twice
     if skip == 2:
         player_fiche[-1] += 1
@@ -510,15 +519,19 @@ def lock_line(fiche_joueurs) :
             if is_prelocked(fiche, colour_ind):
                 remove_dice(colour_ind)
 
-
 # When a line is locked, the dice of color is removed
 def remove_dice(couleur_ind):
+    """
+    Int -> None
+    Procédure qui enleve un dé de la liste de dés.
+    """
+
     if liste_couleur[couleur_ind] is not None:
         print(f"Le dé {liste_couleur[couleur_ind]} est retiré du jeu.")
         liste_couleur[couleur_ind] = None
 
 
-# End conditions
+## End conditions
 def check_end(fiche):
     """
     List --> Bool
@@ -536,7 +549,6 @@ def check_end(fiche):
         return True
     
     return False
-
 
 # calculates points and tells who is the winner
 def who_won(fiche_joueurs, noms):
@@ -563,7 +575,101 @@ def who_won(fiche_joueurs, noms):
     print("Merci d'avoir joué ! \n[Exiting program...]")
     sleep(3)
     exit()
+##
+
+
+
+### affichage
+def create_fiche(reverse = False):
+    """
+    Bool -> Generator
+    Generateur qui crée une liste de nombre pour la fiche à afficher.
+    """
+
+    if not reverse:
+        for n in range(2, 13):
+            if n != 2 and n != 12:
+                yield " "
+            elif n == 2:
+                yield "2 "
+            elif n == 12:
+                yield "12"
+
+    else:
+        for n in range(12, 1, -1):
+            if n != 2 and n != 12:
+                yield " "
+            if n == 12:
+                yield "12"
+            if n == 2:
+                yield " 2"
+
+
+def affiche_couleur(couleur_index):
+    """
+    Int -> None
+    Procédure qui complète la fiche.
+    """
+
+    if couleur_index == 0:
+        print(f"{Fore.RED}r{Style.RESET_ALL} |", end = "")
     
+    elif couleur_index == 1:
+        print(f"{Fore.YELLOW}j{Style.RESET_ALL} |", end = "")
+    
+    elif couleur_index == 2:
+        print(f"{Fore.BLUE}b{Style.RESET_ALL} |", end = "")
+   
+    else:
+        print(f"{Fore.GREEN}v{Style.RESET_ALL} |", end = "")
+
+def update_fiche(fiche, player_fiche, index = 0):
+    """
+    List x List x Int -> None
+    Procédure qui ajoute des 'x' aux cases cochés dans fiche à afficher.
+    """
+
+    for fiche_couleur in player_fiche[:-1]:
+        if fiche_couleur == []:
+            index += 1
+            continue
+
+        for value in fiche_couleur:
+            if 0 <= index <= 1:
+                if value == 2:
+                    fiche[index][value - 2] = "x "
+                elif value == 12:
+                    fiche[index][value - 2] = " x"
+                else:
+                    fiche[index][value - 2] = "x"
+            
+            else:
+                if value == 2:
+                    fiche[index][12 - value] = " x"
+                elif value == 12:
+                    fiche[index][12 - value] = "x "
+                else:
+                    fiche[index][12 - value] = "x"
+
+        index += 1
+
+def affiche_fiche(fiche):
+    """
+    List -> None
+    Procédure qui affiche la fiche du joueur.
+    """
+
+    for index, fiche_couleur in enumerate(fiche):
+        affiche_couleur(index)
+
+        for case in fiche_couleur:
+            print(f" {case} |", end = "")
+
+        if fiche[index][10] == " x" or fiche[index][10] == " x":
+            print(" fermée")
+        else:
+            print()
+###
 
 #### Notes et problèmes ####
 
@@ -571,9 +677,6 @@ def who_won(fiche_joueurs, noms):
 # Les éléments secondaires sont: les conditions d'arrêt, cocher un case de la fiche, les conditions pour pouvoir cocher une case, sélection de personnage, tour par tour, pénalités, active_player
 
 # fiche_player: liste d'élément, chaque élément correspond à une ligne de la fiche écrit en str, les str sont les numéros cochés enregistrés en base 16. La pénalité (int) est le dernier élément de la liste. 
-
-# condition d'arrêt [REGLÉ ?]
-# problème skip lorsque le joueur actif croche dé blanc mais pas dé couleur il recoit une pénalité [REGLÉ ?]
 # #
 
 def mode_dev():
@@ -581,7 +684,6 @@ def mode_dev():
     return dice_value
 
 #setup
-dice = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"]
 liste_couleur = ["rouge", "jaune", "bleu", "vert", "blanc1", "blanc2"]
 
 
@@ -593,7 +695,7 @@ def game_no_bot():
     print("======================\n")
 
 
-    # [Initialisation provisoire]
+    # [Initialisation]
     liste_joueurs = add_player()
     fiche_joueurs = [[[], [], [], [], 0] for i in range(len(liste_joueurs))]
 
@@ -603,6 +705,7 @@ def game_no_bot():
 
     # Start
     mode = input("mode dev (o/n)? ")
+
     running = True
     while running:
         for active_player in liste_joueurs:
@@ -619,27 +722,28 @@ def game_no_bot():
             affiche_des(liste_dice)
             white_dice = combine_whites(liste_dice)
 
-            # ordre_joueur
+            # set up ordre_joueur
             ordre_joueur, ordre_fiche = playing_order(liste_joueurs, fiche_joueurs, active_player)
             sleep(1)
 
-            # Play
+            # Play2
             for player_num, player_name in enumerate(ordre_joueur):
-                print(f"\n[{player_name}]")
+                print(f"\n  [{player_name}]")
 
-                #set up player_fiche
+                # set up player_fiche
                 player_fiche = ordre_fiche[player_num]
-                
-                # until we have a proper affichage
-                print(f"{player_name} : {player_fiche}")
+                fiche = [list(create_fiche()) for i in range(2)] + [list(create_fiche(reverse = True)) for i in range(2)]
+
+                # update and print fiche 
+                update_fiche(fiche, player_fiche)
+                affiche_fiche(fiche)
+
                 nb_skip = play_white(player_fiche, white_dice)
-                print(f"{player_name} : {player_fiche}\n")
 
                 if player_name == active_player:
                     nb_skip += play_colour(player_fiche, liste_dice)
                     # check penalties
                     count_skip(player_fiche, nb_skip)
-                    print(f"{player_name} : {player_fiche}\n")
             
             # if a line was locked, remove its dice
             lock_line(fiche_joueurs)
