@@ -809,7 +809,6 @@ def affiche_fiche(fiche):
             print()
 
 
-###
 
 #### Notes et problèmes ####
 
@@ -935,37 +934,44 @@ def game_no_bot(loaded_game):
 difficultes = {"facile" : "Roland", "moyen" : "Jordan", "difficile": "Jennifer"}
 
 
-def get_difficulte_bot(nb_bots):
+def choose_difficulte_bot(nb_bots):
     """
     Int --> List
     Fonction retournant la liste des difficultés de chaque bot
     """
     liste_bots = []
+    
     joueur_2 = None
     joueur_3 = None
     joueur_4 = None
     joueur_5 = None
     indice_du_joueur = 2
+    
     while indice_du_joueur <= nb_bots:
         difficulte = input(f"Veuillez entrer la difficulté du joueur {indice_du_joueur}")
+        
         if difficulte in difficultes:
+        
             if joueur_2 not in difficultes:
                 joueur_2 = difficultes[difficulte]
                 liste_bots.append(joueur_2)
+                
             elif joueur_3 not in difficultes:
                 joueur_3 = difficultes[difficulte]
                 liste_bots.append(joueur_3)
+                
             elif joueur_4 not in difficultes:
                 joueur_4 = difficultes[difficulte]
                 liste_bots.append(joueur_4)
+                
             else:
                 joueur_5 = difficultes[difficulte]
                 liste_bots.append(joueur_5)
             indice_du_joueur += 1
+            
         else:
-            print(
-                f"Cette difficulté n'existe pas encore. Les difficultés disponibles pour les IA sont les suivantes : \n",
-                {difficultes})
+            print(f"Cette difficulté n'existe pas encore. Les difficultés disponibles pour les IA sont les suivantes : \n
+                {[key for key in difficultes]}")
     return liste_bots
 
 
