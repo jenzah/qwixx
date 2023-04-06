@@ -959,6 +959,7 @@ def game_no_bot(loaded_game):
     who_won(fiche_joueurs, ordre_joueur)
 
 
+
 def choose_bot_difficulty(nb_bots):
     """
     Int --> List
@@ -1001,6 +1002,7 @@ def game_with_bot():
         nb_bots = int(float(number))
         if 2 <= nb_bots <= 5:
             break
+
     liste_joueurs = [joueur_1] + choose_bot_difficulty(nb_bots)
 
     sleep(1)
