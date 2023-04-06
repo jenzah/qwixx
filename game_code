@@ -277,16 +277,16 @@ def affiche_des(liste_dice):
     affiche les valeurs des dés
     """
     # Affiche la valeur des dés blancs
-    print(f"\nLes dés blancs: {liste_couleur[-2]}({liste_dice[-2]}) {liste_couleur[-1]}({liste_dice[-1]})")
+    affiche(f"\nLes dés blancs: blanc1({liste_dice[-2]}) blanc2({liste_dice[-1]})")
 
     sleep(0.5)
 
     # Affiche la valeur des dés colorés
-    print("Les dés colorés:", end=" ")
+    affiche("Les dés colorés:", ask_end=" ")
     for couleur, dice_value in zip(liste_couleur[:-2], liste_dice):
         if couleur is not None:
-            print(f"{couleur}({dice_value})", end=" ")
-    print()
+            affiche(f"{is_colored(couleur)}({dice_value})", ask_end=" ")
+    affiche("")
 
 
 def add_to_dict(line_colour, combo):
@@ -400,11 +400,11 @@ def affiche_proposition(proposition):
     affiche les lignes et nombres crochable
     """
     if type(proposition) is list:
-        print(f"Vous pouvez crocher {proposition[-1]} la somme des dés blancs dans les lignes: {proposition[:-1]}.")
+        affiche(f"Vous pouvez crocher {proposition[-1]} la somme des dés blancs dans les lignes: {proposition[:-1]}.")
         return
 
     for color in proposition:
-        print(f"Vous pouvez cocher {proposition[color]} dans la ligne {color}.")
+        affiche(f"Vous pouvez cocher {proposition[color]} dans la ligne {is_colored(color)}.")
 
 
 # Check if the number can be crossed on a line
@@ -499,47 +499,47 @@ def place_x(player_fiche, propositions, skip=0, dice_value=None, combo_round=Fal
         # Pour tous les joueurs, choisir la ligne pour crocher la somme des blancs
         if not combo_round:
             dice_value = propositions[-1]
-            ask_colour = input(f"\nChoisissez une ligne pour crocher {dice_value}: ")
+            ask_colour = affiche(f"\nChoisissez une ligne pour crocher {dice_value}: ", ask_input=True)
 
         # Pour joueur actif in his second round, same as above
         else:
-            ask_colour = input("\nChoisissez une ligne pour crocher un numéro : ")
+            ask_colour = affiche("\nChoisissez une ligne pour crocher un numéro : ", ask_input=True)
 
         ask_colour = ask_colour.lower()
 
         # error messages
         if ask_colour not in liste_couleur:
-            print("[ERREUR: Cette couleur de ligne n'existe pas or the line was locked.]")
+            affiche("[ERREUR: Cette couleur de ligne n'existe pas]")
             continue
 
         if ask_colour not in propositions:
-            print("[ERREUR: Vous ne pouvez crocher dans cette ligne.]\n")
+            affiche("[ERREUR: Vous ne pouvez crocher dans cette ligne]\n")
             continue
 
         # Pour joueur actif (2nd round), choisir numéro
         if type(propositions) is dict:
             while dice_value not in propositions[ask_colour]:
-                dice_value = input("Choisissez un numéro à crocher : ")
+                dice_value = affiche("Choisissez un numéro à crocher : ", ask_input=True)
                 try:
                     dice_value = int(dice_value)
                 except ValueError:
-                    print("[ERREUR: Entrez un numéro.]")
+                    affiche("[ERREUR: Entrez un numéro.]")
                     continue
 
                 if dice_value in propositions[ask_colour]:
                     break
-                print("[ERREUR: Vous ne pouvez crocher ce numéro.]")
+                affiche("[ERREUR: Vous ne pouvez crocher ce numéro.]")
 
         # confirmer le choix
         couleur_ind = indice_couleur(ask_colour)
-        confirm = input(f"Etes-vous sûr(e) de crocher {dice_value} dans la ligne {ask_colour} (oui/non/pass) ? ")
+        confirm = affiche(f"Etes-vous sûr(e) de crocher {dice_value} dans la ligne {is_colored(ask_colour)} (oui/non/pass) ? ", ask_input=True)
 
         if confirm.lower() in ["oui", "o"]:
             sleep(0.5)
-            print(f"Vous avez croché {dice_value}.")
+            affiche(f"Vous avez croché {dice_value}.")
             if dice_value in [2, 12] and verif_dernier(player_fiche, couleur_ind, dice_value):
                 sleep(0.5)
-                print(f"You have successfully locked the {ask_colour} line.")
+                affiche(f"You have successfully locked the {is_colored(ask_colour)} line.")
             ajoute_numero(player_fiche, couleur_ind, dice_value)
 
             break
@@ -567,24 +567,24 @@ def play_white(player_fiche, white_dice, skip=0):
 
     # si le joueur ne peut pas jouer, on quitte la fonction
     if len(prop_whites) == 1:
-        print(f"Vous ne pouvez pas crocher {white_dice} dans aucune des lignes.")
+        affiche(f"Vous ne pouvez pas crocher {white_dice} dans aucune des lignes.")
         skip += 1
         return skip
 
     affiche_proposition(prop_whites)
 
     while True:
-        place_white = input(f"Voulez-vous crocher {white_dice} dans une ligne (oui/pass) ? ")
+        place_white = affiche(f"Voulez-vous crocher {white_dice} dans une ligne (oui/pass) ? ", ask_input=True)
 
         if place_white.lower() in ["oui", "o"]:
             skip += place_x(player_fiche, prop_whites)
             break
 
         elif place_white.lower() in ["pass", "p"]:
-            print("Vous avez décidé de ne pas crocher de numéros.")
+            affiche("Vous avez décidé de ne pas crocher de numéros.")
             skip += 1
             break
-        print("[ERREUR: Commande invalide]")
+        affiche("[ERREUR: Commande invalide]")
 
     return skip
 
@@ -596,33 +596,33 @@ def play_colour(player_fiche, liste_dice, skip=0):
     """
 
     # active player second turn
-    print("\nVous êtes le joueur actif.")
+    affiche("\nVous êtes le joueur actif.")
     sleep(0.5)
 
-    print("Vous pouvez combiner un dé blanc avec un dé coloré.")
+    affiche("Vous pouvez combiner un dé blanc avec un dé coloré.")
     sleep(0.5)
 
     prop_colour = propose_combo(player_fiche, liste_dice)
 
     if prop_colour == {}:
-        print(f"Vous ne pouvez pas crocher de numéros dans aucune ligne.")
+        affiche(f"Vous ne pouvez pas crocher de numéros dans aucune ligne.")
         skip += 1
         return skip
 
     affiche_proposition(prop_colour)
 
     while True:
-        place_combo = input(f"\nVoulez-vous crocher une proposition dans une ligne (oui/pass) ? ")
+        place_combo = affiche("\nVoulez-vous crocher une proposition dans une ligne (oui/pass) ? ", ask_input=True)
 
         if place_combo.lower() in ["oui", "o"]:
             skip = place_x(player_fiche, prop_colour, combo_round=True)
             break
 
         elif place_combo.lower() in ["pass", "p"]:
-            print("Vous avez décidé de ne pas crocher de numéros.")
+            affiche("Vous avez décidé de ne pas crocher de numéros.")
             skip += 1
             break
-        print("[ERREUR: Commande invalide]")
+        affiche("[ERREUR: Commande invalide]")
 
     return skip
 
@@ -638,7 +638,7 @@ def count_skip(player_fiche, skip):
     # if active player skip twice
     if skip == 2:
         player_fiche[-1] += 1
-        print(f"Vous avez passé votre tour 2 fois, vous obtenez une pénalité. | Pénalités: {player_fiche[-1]}.")
+        affiche(f"Vous avez passé votre tour 2 fois, vous obtenez une pénalité. | Pénalités: {player_fiche[-1]}.")
 
 
 # if line has the locking number in it, it removes the dice
@@ -661,7 +661,7 @@ def remove_dice(couleur_ind):
     """
 
     if liste_couleur[couleur_ind] is not None:
-        print(f"Le dé {liste_couleur[couleur_ind]} est retiré du jeu.")
+        affiche(f"Le dé {liste_couleur[couleur_ind]} est retiré du jeu.")
         liste_couleur[couleur_ind] = None
 
 
@@ -673,13 +673,13 @@ def check_end(fiche):
     """
     # if someone has 4 penalties
     if fiche[-1] == 4:
-        print(f"{player_name} a 4 pénalité.")
+        affiche(f"{player_name} a 4 pénalité.")
         return True
 
     # if 2 lines are locked <==> 2 dices are removed
     nones = sum(1 for i in liste_couleur if i is None)
     if nones == 2:
-        print("Vous avez enlevez le deuxieme dé coloré.")
+        affiche("Vous avez enlevez le deuxieme dé coloré.")
         return True
 
     return False
@@ -691,7 +691,7 @@ def who_won(fiche_joueurs, noms):
     List x List --> None
     Compte des points et affiche le gagnant
     """
-    print("Le jeu est terminé. \nLes points sont calculés... \n")
+    affiche("Le jeu est terminé. \nLes points sont calculés... \n")
     sleep(2)
 
     points_joueurs = [0 for i in range(len(fiche_joueurs))]
@@ -706,8 +706,10 @@ def who_won(fiche_joueurs, noms):
         points_joueurs[player] -= (fiche_joueurs[player][-1] * 5)
 
     winner_index = points_joueurs.index(max(points_joueurs))
-    print(f"Vous avez gagné, {noms[winner_index]} avec {max(points_joueurs)} points.")
-    print("Merci d'avoir joué ! \n[Exiting program...]")
+
+    affiche(f"Vous avez gagné, {noms[winner_index]} avec {max(points_joueurs)} points.")
+    affiche("Merci d'avoir joué ! \n[Exiting program...]")
+
     sleep(3)
     exit()
 
@@ -741,23 +743,24 @@ def create_fiche(reverse=False):
                 yield " 2"
 
 
-def affiche_couleur(couleur_index):
+def is_colored(str=None):
     """
     Int --> None
     Procédure qui complète la fiche.
     """
 
-    if couleur_index == 0:
-        print(f"{Fore.RED}r{Style.RESET_ALL} |", end="")
+    if str == "rouge" or str == "r":
+        colored = (f"{Fore.RED}{str}{Style.RESET_ALL}")
 
-    elif couleur_index == 1:
-        print(f"{Fore.YELLOW}j{Style.RESET_ALL} |", end="")
+    elif str == "jaune" or str == "j":
+        colored = (f"{Fore.YELLOW}{str}{Style.RESET_ALL}")
 
-    elif couleur_index == 2:
-        print(f"{Fore.BLUE}b{Style.RESET_ALL} |", end="")
+    elif str == "bleu" or str == "b":
+        colored = (f"{Fore.BLUE}{str}{Style.RESET_ALL}")
 
     else:
-        print(f"{Fore.GREEN}v{Style.RESET_ALL} |", end="")
+        colored = (f"{Fore.GREEN}{str}{Style.RESET_ALL}")
+    return colored
 
 
 def update_fiche(fiche, player_fiche, index=0):
@@ -798,7 +801,8 @@ def affiche_fiche(fiche):
     """
 
     for index, fiche_couleur in enumerate(fiche):
-        affiche_couleur(index)
+        # Pour afficher r, j, b, v en couleur
+        print(f"{is_colored(liste_couleur[index][0])} |", end="")
 
         for case in fiche_couleur:
             print(f" {case} |", end="")
@@ -809,6 +813,29 @@ def affiche_fiche(fiche):
             print()
 
 
+def affiche(texte, ask_input=False, ask_end=None):
+    """
+    str x Bool -> Elem (si ask_input est vrai, None sinon)
+    Fonction permettant l'affichage et la demande d'input.
+    """
+
+    if bot_game:
+        return
+
+    # if input()
+    if ask_input:
+        ask = input(texte)
+        return ask
+    
+    #if print(str, end="")
+    if ask_end is not None:
+        print(texte, end=ask_end)
+    #if print(str)
+    else:
+        print(texte)
+
+
+###
 
 #### Notes et problèmes ####
 
@@ -825,6 +852,8 @@ def mode_dev():
 
 # setup
 liste_couleur = ["rouge", "jaune", "bleu", "vert", "blanc1", "blanc2"]
+#dictionnaire stockant le nom des IA
+difficultes = {"facile" : "Roland", "moyen" : "Jordan", "difficile": "Jennifer"}
 
 CURR_DIR = os.getcwd()
 SAVE_DIR = os.path.join(CURR_DIR, "saved_games")
@@ -905,7 +934,7 @@ def game_no_bot(loaded_game):
                 player_fiche = ordre_fiche[player_num]
                 fiche = [list(create_fiche()) for i in range(2)] + [list(create_fiche(reverse=True)) for i in range(2)]
 
-                # update and print fiche
+                # update and affiche fiche
                 update_fiche(fiche, player_fiche)
                 affiche_fiche(fiche)
 
@@ -930,60 +959,36 @@ def game_no_bot(loaded_game):
     who_won(fiche_joueurs, ordre_joueur)
 
 
-#dictionnaire stockant le nom des IA
-difficultes = {"facile" : "Roland", "moyen" : "Jordan", "difficile": "Jennifer"}
-
-
-def choose_difficulte_bot(nb_bots):
+def choose_bot_difficulty(nb_bots):
     """
     Int --> List
     Fonction retournant la liste des difficultés de chaque bot
     """
     liste_bots = []
-    
-    joueur_2 = None
-    joueur_3 = None
-    joueur_4 = None
-    joueur_5 = None
-    indice_du_joueur = 2
-    
-    while indice_du_joueur <= nb_bots:
-        difficulte = input(f"Veuillez entrer la difficulté du joueur {indice_du_joueur}")
-        
-        if difficulte in difficultes:
-        
-            if joueur_2 not in difficultes:
-                joueur_2 = difficultes[difficulte]
-                liste_bots.append(joueur_2)
-                
-            elif joueur_3 not in difficultes:
-                joueur_3 = difficultes[difficulte]
-                liste_bots.append(joueur_3)
-                
-            elif joueur_4 not in difficultes:
-                joueur_4 = difficultes[difficulte]
-                liste_bots.append(joueur_4)
-                
-            else:
-                joueur_5 = difficultes[difficulte]
-                liste_bots.append(joueur_5)
-            indice_du_joueur += 1
+
+    nom_bot = None
+
+    while nom_bot is None :
+        diff = input(f"Entrez la difficulté du bot (facile/moyen) : ")
+
+        if diff in difficultes:
+            if nom_bot not in difficultes:
+                nom_bot = difficultes[diff]
             
         else:
-            print(f"Cette difficulté n'existe pas encore. Les difficultés disponibles pour les IA sont les suivantes : \n
-                {[key for key in difficultes]}")
-    return liste_bots
+            print(f"[Commande invalide]")
+            
+    return nom_bot
 
 
 def game_with_bot():
     global active_player, player_name
 
-    print("\n======================")
-    print("     JEU DU QWIXX")
-    print("======================\n")
+    affiche("\n======================")
+    affiche("     JEU DU QWIXX")
+    affiche("======================\n")
 
     # [Initialisation]
-
     joueur_1 = input(f"Entrez votre nom : ")
 
     while True:
@@ -996,7 +1001,7 @@ def game_with_bot():
         nb_bots = int(float(number))
         if 2 <= nb_bots <= 5:
             break
-    liste_joueurs = [joueur_1] + get_difficulte_bot(nb_bots)
+    liste_joueurs = [joueur_1] + choose_bot_difficulty(nb_bots)
 
     sleep(1)
     print(f"\nVous pouvez commencer! Ordre de lancer: {liste_joueurs} \n")
@@ -1010,7 +1015,7 @@ def game_with_bot():
             # Trow dice
             if active_player == joueur_1 :
                 start_round = input("Appuyer sur ENTER pour lancer le dé: ")
-                    liste_dice = get_dices()
+                liste_dice = get_dices()
 
             # Addition les dés blancs et affiche la valeur des dés
             affiche_des(liste_dice)
@@ -1028,7 +1033,7 @@ def game_with_bot():
                 player_fiche = ordre_fiche[player_num]
                 fiche = [list(create_fiche()) for i in range(2)] + [list(create_fiche(reverse=True)) for i in range(2)]
 
-                # update and print fiche
+                # update and affiche fiche
                 update_fiche(fiche, player_fiche)
                 affiche_fiche(fiche)
 
@@ -1059,8 +1064,11 @@ def game_full_bot():
 
 ## choose game mode
 def choice_gamemode():
+    global bot_game
+
     # ask if player wants to load previous game
     loaded_game = ask_to_load()
+    bot_game = False
 
     if loaded_game:
         game_no_bot(loaded_game)
@@ -1087,6 +1095,7 @@ def choice_gamemode():
             game_with_bot()
 
         else:
+            bot_game = True
             print("\n[Mode uniquement bots]")
             game_full_bot()
 
