@@ -501,21 +501,6 @@ def place_x(player_fiche, propositions, ligne, skip=0, dice_value=None, combo_ro
         # Pour tous les joueurs, choisir la ligne pour cocher la somme des blancs
         if not combo_round:
             dice_value = propositions[-1]
-            #ask_color = affiche(f"\nChoisissez une ligne pour cocher {dice_value}: ", ask_input=True)
-
-        # Pour joueur actif in his second round, same as above
-        #else:
-            #ask_color = affiche("\nChoisissez une ligne : ", ask_input=True)
-
-
-        # error messages
-        #if ligne not in liste_couleur:
-        #    affiche("[ERREUR: Cette couleur de ligne n'existe pas]")
-        #    continue
-#
-        #if ligne not in propositions:
-        #    affiche("[ERREUR: Vous ne pouvez cocher dans cette ligne]\n")
-        #    continue
 
         # Pour joueur actif (2nd round), choisir numéro
         if type(propositions) is dict:
