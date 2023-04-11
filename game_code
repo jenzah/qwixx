@@ -585,7 +585,7 @@ def play_color(player_fiche, prop_color, skip=0):
         return skip
 
     while True:
-        place_combo = affiche("\n[La combo]\nCochez dans la ligne (couleur/pass) : ", ask_input=True)
+        place_combo = affiche("\n[Dé blanc + Dé couleur]\nCochez dans la ligne (couleur/pass) : ", ask_input=True)
         ligne = place_combo.lower()
 
         if ligne not in liste_couleur:
