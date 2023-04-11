@@ -233,6 +233,7 @@ def playing_order(liste_joueurs, fiche_joueurs, active_player):
     """
     #Find active player
     liste_joueurs2 = liste_joueurs.copy()
+    fiches = fiche_joueurs.copy()
     active_ind = liste_joueurs.index(active_player)
 
     #Remove active player
@@ -241,9 +242,9 @@ def playing_order(liste_joueurs, fiche_joueurs, active_player):
 
     #Add active player at the end
     liste_joueurs2.append(active_player)
-    fiche_joueurs.append(active_fiche)
+    fiches.append(active_fiche)
 
-    return liste_joueurs2, fiche_joueurs
+    return liste_joueurs2, fiches
 
 
 # Convert the color into an index number
