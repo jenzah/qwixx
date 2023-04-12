@@ -1,10 +1,9 @@
 
-
 from sys import exit
 from time import sleep
 from itertools import product
 from colorama import Fore, Style
-from random import randint
+from random import randint,choice
 import json
 import os
 
@@ -231,20 +230,19 @@ def playing_order(liste_joueurs, fiche_joueurs, active_player):
     List x Str --> List
     renvoie la liste des joueurs où le joueur actif joue après les joueurs passifs
     """
-    #Find active player
+    # Find active player
     liste_joueurs2 = liste_joueurs.copy()
-    fiches = fiche_joueurs.copy()
     active_ind = liste_joueurs.index(active_player)
 
-    #Remove active player
+    # Remove active player
     liste_joueurs2.remove(active_player)
-    active_fiche = fiches.pop(active_ind)
+    active_fiche = fiche_joueurs.pop(active_ind)
 
-    #Add active player at the end
+    # Add active player at the end
     liste_joueurs2.append(active_player)
-    fiches.append(active_fiche)
+    fiche_joueurs.append(active_fiche)
 
-    return liste_joueurs2, fiches
+    return liste_joueurs2, fiche_joueurs
 
 
 # Convert the color into an index number
@@ -253,7 +251,7 @@ def indice_couleur(couleur):
     Str --> Int
     Fonction retournant l'indice de la couleur.
     """
-    #rouge = 0, jaune = 1, bleu = 2, vert = 3
+    # rouge = 0, jaune = 1, bleu = 2, vert = 3
     return liste_couleur.index(couleur)
 
 
@@ -340,7 +338,7 @@ def propose_white(player_fiche, white_dices):
     lines = []
 
     for line_color in liste_couleur[:-2]:
-        #Check if line_color is locked
+        # Check if line_color is locked
         if line_color is None:
             continue
 
@@ -399,13 +397,12 @@ def affiche_proposition(proposition):
     affiche les lignes et nombres crochable
     """
     if type(proposition) is list:
-        for i in range(len(proposition[:-1])):
-            proposition[i] = is_colored(proposition[i], proposition[i])
-        affiche(f"Vous pouvez cocher {proposition[-1]} dans : {', '.join(str(color) for color in proposition[:-1])}.")
+        affiche \
+            (f"La somme des dés blancs est {proposition[-1]}. Vous pouvez cocher dans les lignes: {proposition[:-1]}.")
         return
 
     for color in proposition:
-        affiche(f"Ligne {is_colored(color, color)} : {', '.join(map(str, proposition[color]))}")
+        affiche(f"Vous pouvez cocher {proposition[color]} dans la ligne {is_colored(color, color)}.")
 
 
 # Check if the number can be crossed on a line
@@ -491,7 +488,7 @@ def is_prelocked(player_fiche, color_ind):
 
 
 ## Pour cocher blanc1 + blanc2 et les combo de couleur
-def place_x(player_fiche, propositions, ligne, skip=0, dice_value=None, combo_round=False):
+def place_x(player_fiche, propositions, skip=0, dice_value=None, combo_round=False):
     """
     List x List/Dict x Int (x Bool) --> Int
     demande au joueur de cocher un numéro, le coche si c'est possible et
@@ -501,10 +498,26 @@ def place_x(player_fiche, propositions, ligne, skip=0, dice_value=None, combo_ro
         # Pour tous les joueurs, choisir la ligne pour cocher la somme des blancs
         if not combo_round:
             dice_value = propositions[-1]
+            ask_color = affiche(f"\nChoisissez une ligne pour cocher {dice_value}: ", ask_input=True)
+
+        # Pour joueur actif in his second round, same as above
+        else:
+            ask_color = affiche("\nChoisissez une ligne : ", ask_input=True)
+
+        ask_color = ask_color.lower()
+
+        # error messages
+        if ask_color not in liste_couleur:
+            affiche("[ERREUR: Cette couleur de ligne n'existe pas]")
+            continue
+
+        if ask_color not in propositions:
+            affiche("[ERREUR: Vous ne pouvez cocher dans cette ligne]\n")
+            continue
 
         # Pour joueur actif (2nd round), choisir numéro
         if type(propositions) is dict:
-            while dice_value not in propositions[ligne]:
+            while dice_value not in propositions[ask_color]:
                 dice_value = affiche("Choisissez un numéro à cocher : ", ask_input=True)
                 try:
                     dice_value = int(dice_value)
@@ -512,20 +525,21 @@ def place_x(player_fiche, propositions, ligne, skip=0, dice_value=None, combo_ro
                     affiche("[ERREUR: Entrez un numéro.]")
                     continue
 
-                if dice_value in propositions[ligne]:
+                if dice_value in propositions[ask_color]:
                     break
                 affiche("[ERREUR: Vous ne pouvez crocher ce numéro.]")
 
         # confirmer le choix
-        couleur_ind = indice_couleur(ligne)
-        confirm = affiche(f"Vous allez cocher le {is_colored(ligne, ligne)} {dice_value}. Etes-vous sûr (oui/non/pass) ? ", ask_input=True)
+        couleur_ind = indice_couleur(ask_color)
+        confirm = affiche \
+            (f"Etes-vous sûr(e) de cocher {dice_value} dans la ligne {is_colored(ask_color, ask_color)} (oui/non/pass) ? ", ask_input=True)
 
         if confirm.lower() in ["oui", "o"]:
             sleep(0.5)
-            affiche(f"Vous avez coché {dice_value}.")
+            affiche(f"Vous avez croché {dice_value}.")
             if dice_value in [2, 12] and verif_dernier(player_fiche, couleur_ind, dice_value):
                 sleep(0.5)
-                affiche(f"You have successfully locked the {is_colored(ligne, ligne)} line.")
+                affiche(f"You have successfully locked the {is_colored(ask_color, ask_color)} line.")
             ajoute_numero(player_fiche, couleur_ind, dice_value)
 
             break
@@ -542,73 +556,115 @@ def place_x(player_fiche, propositions, ligne, skip=0, dice_value=None, combo_ro
     return skip
 
 
-def play_white(player_fiche, prop_whites, skip=0):
+def play_white(player_fiche, white_dice, skip=0, bot = False):
     """
     List x Int (x Int) --> Int
-    demande à tous les joueurs s'il veut cocher la somme de dés blancs
+    demande à tous les joueurs s'il veut c=ocher la somme de dés blancs
     retourne skip+1 si le joueur a décidé de passer ce tour
     """
-    white_dice = prop_whites[-1]
-    
+    # ask all players to place X with whites
+    prop_whites = propose_white(player_fiche, white_dice)
+
     # si le joueur ne peut pas jouer, on quitte la fonction
     if len(prop_whites) == 1:
         affiche(f"Vous ne pouvez pas cocher {white_dice} dans aucune des lignes.")
         skip += 1
         return skip
 
-    while True:
-        place_white = affiche(f"Cochez {white_dice} dans la ligne (couleur/pass) : ", ask_input=True)
+    affiche_proposition(prop_whites)
 
-        ligne = place_white.lower()
-        if ligne in liste_couleur:
-            skip += place_x(player_fiche, prop_whites, ligne)
-            break
+    if not bot :
+        while True:
+            place_white = affiche(f"Voulez-vous cocher {white_dice} dans une ligne (oui/pass) ? ", ask_input=True)
 
-        elif ligne in ["pass", "p"]:
-            affiche("Vous avez décidé de ne pas cocher de numéro.")
-            skip += 1
-            break
-        affiche("[ERREUR: Commande invalide]")
+            if place_white.lower() in ["oui", "o"]:
+                skip += place_x(player_fiche, prop_whites)
+                break
+
+            elif place_white.lower() in ["pass", "p"]:
+                affiche("Vous avez décidé de ne pas cocher de numéros.")
+                skip += 1
+                break
+            affiche("[ERREUR: Commande invalide]")
+    else :
+        if player_name == "Roland" :
+            print(f"Voulez-vous cocher {white_dice} dans une ligne (oui/pass) ? ")
+            place_white = choice(prop_whites + ["pass"])
+
+            if place_white in prop_whites :
+                skip += place_x_bot(player_fiche, prop_whites, place_white)
+
+            elif place_white == "pass" :
+                affiche(f"{player_name} a décidé de ne pas cocher de numéros.")
+                skip += 1
 
     return skip
 
 
-def play_color(player_fiche, prop_color, skip=0):
+def play_color(player_fiche, liste_dice, skip=0, bot = False):
     """
     List x List x Int --> Int
     Fonction qui permet le jeu et qui renvoie le nombre de skip.
     """
+    if not bot :
+        # active player second turn
+        affiche("\nVous êtes le joueur actif.")
+        sleep(0.5)
 
-    if prop_color == {}:
-        affiche(f"Vous ne pouvez pas cocher de numéros dans aucune ligne.")
-        skip += 1
-        return skip
+        affiche("Vous pouvez combiner un dé blanc avec un dé coloré.")
+        sleep(0.5)
 
-    while True:
-        place_combo = affiche("\n[Dé blanc + Dé couleur]\nCochez dans la ligne (couleur/pass) : ", ask_input=True)
-        ligne = place_combo.lower()
+        prop_color = propose_combo(player_fiche, liste_dice)
 
-        if ligne not in liste_couleur:
-            affiche("[ERREUR: Cette couleur de ligne n'existe pas]")
-            continue
+        if prop_color == {}:
+            affiche(f"Vous ne pouvez pas cocher de numéros dans aucune ligne.")
+            skip += 1
+            return skip
 
-        elif ligne not in prop_color:
-            affiche("[ERREUR: Vous ne pouvez cocher dans cette ligne]\n")
-            continue
+        affiche_proposition(prop_color)
 
-        if ligne in prop_color:
-            skip = place_x(player_fiche, prop_color, ligne, combo_round=True)
-            break
+        while True:
+            place_combo = affiche("\nVoulez-vous cocher une proposition dans une ligne (oui/pass) ? ", ask_input=True)
 
-        elif ligne in ["pass", "p"]:
+            if place_combo.lower() in ["oui", "o"]:
+                skip = place_x(player_fiche, prop_color, combo_round=True)
+                break
+
+            elif place_combo.lower() in ["pass", "p"]:
+                affiche("Vous avez décidé de ne pas cocher de numéros.")
+                skip += 1
+                break
+            affiche("[ERREUR: Commande invalide]")
+    else :
+        # active player second turn
+        affiche(f"\n{player_name} est le joueur actif.")
+        sleep(0.5)
+
+        affiche(f"{player_name} peut combiner un dé blanc avec un dé coloré.")
+        sleep(0.5)
+
+        prop_color = propose_combo(player_fiche, liste_dice)
+
+        if prop_color == {}:
+            affiche(f"{player_name} ne peut pas cocher de numéros dans aucune ligne.")
+            skip += 1
+            return skip
+
+        affiche_proposition(prop_color)
+
+
+        affiche("\nVoulez-vous cocher une proposition dans une ligne (oui/pass) ? ")
+        place_combo = choice(prop_color.values() + ["pass"])
+        if place_combo in prop_color.values() :
+            skip = place_x_bot(player_fiche, prop_color, place_combo, combo_round=True,lignes = prop_color)
+
+        elif place_combo.lower() in ["pass", "p"]:
             affiche("Vous avez décidé de ne pas cocher de numéros.")
             skip += 1
-            break
-        affiche("[ERREUR: Commande invalide]")
 
     return skip
 ##
- 
+
 # Count skip (max: 2 for penaltie)
 def count_skip(player_fiche, skip):
     """
@@ -696,7 +752,7 @@ def who_won(fiche_joueurs, noms):
 ##
 
 
-### Affichage 
+### Affichage
 def create_fiche(reverse=False):
     """
     Bool --> Generator
@@ -727,19 +783,19 @@ def is_colored(str, color):
     Int --> None
     Fonction qui retourne un texte donnée en texte colorié.
     """
-    #texte rouge
+    # texte rouge
     if color == "rouge" or color == "r" :
         colored = (f"{Fore.RED}{str}{Style.RESET_ALL}")
-    
-    #texte jaune
+
+    # texte jaune
     elif color == "jaune" or color == "j" :
         colored = (f"{Fore.YELLOW}{str}{Style.RESET_ALL}")
-    
-    #texte bleu
+
+    # texte bleu
     elif color == "bleu" or color == "b" :
         colored = (f"{Fore.BLUE}{str}{Style.RESET_ALL}")
-    
-    #texte vert
+
+    # texte vert
     else:
         colored = (f"{Fore.GREEN}{str}{Style.RESET_ALL}")
     return colored
@@ -809,12 +865,12 @@ def affiche(texte, ask_input=False, ask_end=None):
     if ask_input:
         ask = input(texte)
         return ask
-    
-    #if print(str, end="")
+
+    # if print(str, end="")
     if ask_end is not None:
         print(texte, end=ask_end)
 
-    #print(str) standard
+    # print(str) standard
     else:
         print(texte)
 
@@ -836,7 +892,7 @@ def mode_dev():
 
 # setup
 liste_couleur = ["rouge", "jaune", "bleu", "vert", "blanc1", "blanc2"]
-#dictionnaire stockant le nom des IA
+# dictionnaire stockant le nom des IA
 difficultes = {"facile" : "Roland", "moyen" : "Jordan", "difficile": "Jennifer"}
 
 CURR_DIR = os.getcwd()
@@ -863,7 +919,7 @@ def game_no_bot(loaded_game):
         fiche_joueurs = [[[], [], [], [], 0] for i in liste_joueurs]
 
     sleep(1)
-    print(f"\nVous pouvez commencer! Ordre de lancer: {', '.join(liste_joueurs)} \n")
+    print(f"\nVous pouvez commencer! Ordre de lancer: {liste_joueurs} \n")
     sleep(0.5)
 
     # Start
@@ -921,27 +977,11 @@ def game_no_bot(loaded_game):
                 # update and affiche fiche
                 update_fiche(fiche, player_fiche)
                 affiche_fiche(fiche)
-                
-                # propositions
-                prop_whites = propose_white(player_fiche, white_dice)
-                prop_color = propose_combo(player_fiche, liste_dice)
 
-                if player_name != active_player :
-                    affiche_proposition(prop_whites)
-                    nb_skip = play_white(player_fiche, prop_whites)
+                nb_skip = play_white(player_fiche, white_dice)
 
-                else :
-                    print("Vous êtes le joueur actif.")
-                    sleep(0.5)
-                    affiche_proposition(prop_whites)
-                    
-                    print("En plus, vous pouvez combiner un dé blanc avec un dé coloré.")
-                    sleep(0.5)
-                    affiche_proposition(prop_color)
-
-                    print("\n[Dés blancs]")
-                    nb_skip = play_white(player_fiche, prop_whites)
-                    nb_skip += play_color(player_fiche, prop_color)
+                if player_name == active_player:
+                    nb_skip += play_color(player_fiche, liste_dice)
                     # check penalties
                     count_skip(player_fiche, nb_skip)
 
@@ -959,7 +999,7 @@ def game_no_bot(loaded_game):
     who_won(fiche_joueurs, ordre_joueur)
 
 
-#[note:on pourra affronter plusieurs bots identiques ? [niveau for niveau in difficultes] ou list(niveau for niveau in difficultes) ?]
+# [note:on pourra affronter plusieurs bots identiques ? [niveau for niveau in difficultes] ou list(niveau for niveau in difficultes) ?]
 def get_difficulte_bot(nb_bots):
     """
     Int --> List
@@ -972,7 +1012,8 @@ def get_difficulte_bot(nb_bots):
         difficulte = input(f"Veuillez entrer la difficulté du joueur {indice_joueur}")
 
         if difficulte not in difficultes:
-            print(f"Cette difficulté n'existe pas. Les difficultés disponibles sont: \n{[niveau for niveau in difficultes]}")
+            print \
+                (f"Cette difficulté n'existe pas. Les difficultés disponibles sont: \n{[niveau for niveau in difficultes]}")
             continue
 
         liste_bots.append(difficultes[difficulte])
@@ -980,7 +1021,34 @@ def get_difficulte_bot(nb_bots):
 
     return liste_bots
 
-#[note: le bot ne peut pas get_dices() ? on sauvegarde les données dans game_with_bot ?]
+def place_x_bot(player_fiche, propositions, numero, skip=0, dice_value=None, combo_round=False, lignes = None):
+    """
+    List x List/Dict x Int (x Str) --> Int
+    demande au joueur de cocher un numéro, le coche si c'est possible et
+    retourne skip+1 si le joueur decide de passer son tour
+    """
+    print(player_fiche)
+    while True:
+        # Pour tous les joueurs, choisir la ligne pour cocher la somme des blancs
+        if not combo_round:
+            dice_value = propositions[-1]
+            ask_color = affiche(f"\nChoisissez une ligne pour cocher {dice_value}: ")
+            print(f"{player_name} a coché la ligne {numero}")
+        # Pour joueur actif in his second round, same as above
+        else:
+            ask_color = affiche("\nChoisissez une ligne : ")
+        if type(propositions) is dict:
+        # Pour joueur actif (2nd round), choisir numéro
+            affiche("Choisissez un numéro à cocher : ")
+            ligne_a_cocher = choice(prop_color.get(numero))
+            print(f"{player_name} a coché le numéro {numero} dans la ligne {ligne_a_cocher}" )
+
+    print(player_fiche)
+
+    return skip
+
+
+# [note: le bot ne peut pas get_dices() ? on sauvegarde les données dans game_with_bot ?]
 def game_with_bot():
     global active_player, player_name
 
@@ -1016,7 +1084,7 @@ def game_with_bot():
             # Trow dice
             if active_player == joueur_1 :
                 start_round = input("Appuyer sur ENTER pour lancer le dé: ")
-                liste_dice = get_dices()
+            liste_dice = get_dices()
 
             # Addition les dés blancs et affiche la valeur des dés
             affiche_des(liste_dice)
@@ -1038,10 +1106,10 @@ def game_with_bot():
                 update_fiche(fiche, player_fiche)
                 affiche_fiche(fiche)
 
-                nb_skip = play_white(player_fiche, white_dice)
+                nb_skip = play_white(player_fiche, white_dice, bot = True)
 
                 if player_name == active_player:
-                    nb_skip += play_color(player_fiche, liste_dice)
+                    nb_skip += play_color(player_fiche, liste_dice, bot = True)
                     # check penalties
                     count_skip(player_fiche, nb_skip)
 
@@ -1062,7 +1130,8 @@ def game_with_bot():
 def game_full_bot():
     pass
 
-#[note: le game_no_bot fait un exit(), "else" nécessaire ?]
+
+# [note: le game_no_bot fait un exit(), "else" nécessaire ?]
 ## choose game mode
 def choice_gamemode():
     global bot_game
@@ -1074,7 +1143,7 @@ def choice_gamemode():
     if loaded_game:
         print("\n")
         game_no_bot(loaded_game)
-    
+
     else:
         # ask gamemodes
         while True:
@@ -1087,7 +1156,7 @@ def choice_gamemode():
 
             print("[ERREUR : Ce mode ne fait pas partie des modes de jeu]\n")
             sleep(0.5)
-        
+
         sleep(1)
         if game_mode == "1":
             print("\n\n[Mode local avec joueurs]")
