@@ -399,11 +399,12 @@ def affiche_proposition(proposition):
     affiche les lignes et nombres crochable
     """
     if type(proposition) is list:
+        aff_proposition = []
         for i in range(len(proposition[:-1])):
-            proposition[i] = is_colored(proposition[i], proposition[i])
-        affiche(f"Vous pouvez cocher {proposition[-1]} dans : {', '.join(str(color) for color in proposition[:-1])}.")
+            aff_proposition.append(is_colored(proposition[i], proposition[i]))
+        affiche(f"Vous pouvez cocher {proposition[-1]} dans : {', '.join(str(color) for color in aff_proposition)}.")
         return
-
+    
     for color in proposition:
         affiche(f"Ligne {is_colored(color, color)} : {', '.join(map(str, proposition[color]))}")
 
@@ -560,7 +561,7 @@ def play_white(player_fiche, prop_whites, skip=0):
         place_white = affiche(f"Cochez {white_dice} dans la ligne (couleur/pass) : ", ask_input=True)
 
         ligne = place_white.lower()
-        if ligne in liste_couleur:
+        if ligne in prop_whites:
             skip += place_x(player_fiche, prop_whites, ligne)
             break
 
@@ -588,6 +589,11 @@ def play_color(player_fiche, prop_color, skip=0):
         place_combo = affiche("\n[Dé blanc + Dé couleur]\nCochez dans la ligne (couleur/pass) : ", ask_input=True)
         ligne = place_combo.lower()
 
+        if ligne in ["pass", "p"]:
+            affiche("Vous avez décidé de ne pas cocher de numéros.")
+            skip += 1
+            break
+    
         if ligne not in liste_couleur:
             affiche("[ERREUR: Cette couleur de ligne n'existe pas]")
             continue
@@ -596,14 +602,10 @@ def play_color(player_fiche, prop_color, skip=0):
             affiche("[ERREUR: Vous ne pouvez cocher dans cette ligne]\n")
             continue
 
-        if ligne in prop_color:
+        elif ligne in prop_color:
             skip = place_x(player_fiche, prop_color, ligne, combo_round=True)
             break
 
-        elif ligne in ["pass", "p"]:
-            affiche("Vous avez décidé de ne pas cocher de numéros.")
-            skip += 1
-            break
         affiche("[ERREUR: Commande invalide]")
 
     return skip
@@ -941,7 +943,12 @@ def game_no_bot(loaded_game):
 
                     print("\n[Dés blancs]")
                     nb_skip = play_white(player_fiche, prop_whites)
+
+                    if nb_skip != 1 :
+                        prop_color = propose_combo(player_fiche, liste_dice)
+                        affiche_proposition(prop_color)
                     nb_skip += play_color(player_fiche, prop_color)
+                    
                     # check penalties
                     count_skip(player_fiche, nb_skip)
 
