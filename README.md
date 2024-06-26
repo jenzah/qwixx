@@ -30,7 +30,7 @@ Each row consists of numbers that players attempt to cross off in sequence, tryi
 ## Installation
 
 **Clone the repository**:
-    ```bash
+    ```
     git clone https://github.com/jenzah/qwixx.git
     cd qwixx
     ```
@@ -38,6 +38,6 @@ Each row consists of numbers that players attempt to cross off in sequence, tryi
 ## Usage
 
 **To start the game, run the following command:**
-    ```bash
+    ```
     python qwixx.py
     ```
