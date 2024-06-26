@@ -1,25 +1,43 @@
-- décider l'ordre (*originale: l'un avec un 6 commence*)
-- pendant le tour d'un joueur
-	- le joueur
-		- lancer 6 dé
-			- 1 jaune, 1 bleu, 1 vert, 1 rouge
-			- 2 blanc
-		- décider de mettre au moins 1 au plus 2 Xs
-			- soit sur la somme des dés blancs
-			- soit la somme d'un dé blanc et d'un dé coloré
-		- s'il décide de ne met rien, il faut mettre un X sur une 'vie'
-	- des autres
-		- soit mettre un X sur la somme des dés blancs (n'importe quel couleur), soit skip
-- interdit de mettre un X avant un X qui est lá déjá (e.g. si j'ai un X sur le nombre jaune 4, je ne peux pas crocher jaune 2, ou 3)
-- les jaunes et les rouges vont de 2 á 12
-- les verts et les bleus vont de 12 á 2
-- les derniers carrés sont des serrures (?)
-	- peut crocher que avec un minimum de 5 Xs dans la ligne
-	- s'il est croisé, il faut enlever le dé corréspondant et personne n'a plus le droit de crocher le couleur
+# Qwixx
 
-- une 'penalty' vaut -5 points et un joueur en a 4
-- points par couleur
+Qwixx is a fast-paced dice game where players try to mark off as many numbers as possible in four different colored rows.
+Each row consists of numbers that players attempt to cross off in sequence, trying to score the highest points.
 
-- le jeu est terminé quand
-	- 2 dés sont enlevé
-	- quelqu'un a 4 penalty
+
+## Game Rules
+
+1. **Setup**: 
+    - The game consists of a scoresheet with four rows, each a different color (red, yellow, green, blue).
+    - Each row has numbers ranging from 2 to 12 (red and yellow) or from 12 to 2 (green and blue).
+
+2. **Gameplay**:
+    - The game is played with six dice: two white dice and one die for each color (red, yellow, green, blue).
+    - On each turn, the active player rolls all six dice.
+    - All players can use the sum of the two white dice to mark off a number in any row. This is the "common" action.
+    - The active player can also choose to combine one of the white dice with one of the colored dice to mark off a number in the row corresponding to the color of the die.
+    - If a player decides to not cross off any numbers, they accumulate a penalty.
+    - Numbers must be marked off from left to right. You can skip numbers, but you cannot go back once a number is skipped.
+
+3. **Locking a Row**:
+    - If a player marks off at least five numbers in a row, they can lock that row by marking the last number (12 for red/yellow, 2 for green/blue).
+    - As soon as a row is locked, the corresponding dice is removed from the game.
+    - Once a row is locked, no other players can mark off numbers in that row after that turn.
+
+4. **End of Game**:
+    - The game ends when either two rows are locked or one player marks their fourth penalty.
+    - Players then tally their points based on how many numbers they have marked in each row, minus penalties.
+
+## Installation
+
+**Clone the repository**:
+    ```
+    git clone https://github.com/yourusername/qwixx.git
+    cd qwixx
+    ```
+
+## Usage
+
+**To start the game, run the following command:**
+    ```
+    python qwixx.py
+    ```
